@@ -35,7 +35,7 @@ DO_PM_SHARED_CC=$(CC) $(INCLUDEDIRS)  $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 
 #####################################################################
 
-HL1_OBJS = \
+HLP_OBJS = \
 	$(HLP_OBJ_DIR)/hud_spectator.o \
 	$(HLP_OBJ_DIR)/ev_hldm.o \
 	$(HLP_OBJ_DIR)/hl/hl_baseentity.o \
@@ -137,9 +137,9 @@ PM_SHARED_OBJS = \
 
 all: client_hlp.$(SHLIBEXT)
 
-client_hlp.$(SHLIBEXT): $(HL1_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS)
-	$(CLINK) -o $(BUILD_DIR)/$@ $(HL1_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS) $(LDFLAGS) $(CPP_LIB)
-	./gendbg.sh $(BUILD_DIR)/client.$(SHLIBEXT)
+client_hlp.$(SHLIBEXT): $(HLP_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS)
+	$(CLINK) -o $(BUILD_DIR)/$@ $(HLP_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS) $(LDFLAGS) $(CPP_LIB)
+	./gendbg.sh $(BUILD_DIR)/client_hlp.$(SHLIBEXT)
 
 $(HLP_OBJ_DIR):
 	mkdir -p $(HLP_OBJ_DIR)
