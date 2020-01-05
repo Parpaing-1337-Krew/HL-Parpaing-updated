@@ -789,12 +789,12 @@ void inline CalcBounds(int &Lower, int &Upper, int Goal, int Best)
     int Temp = 2*Goal - Best;
     if (Best > Goal)
     {
-        Lower = max(0, Temp);
+        Lower = V_max(0, Temp);
         Upper = Best;
     }
     else
     {
-        Upper = min(255, Temp);
+        Upper = V_min(255, Temp);
         Lower = Best;
     }
 }
@@ -947,7 +947,7 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
         }
     }
 
-    for (i = max(m_minY,halfY+1); i <= m_maxY; i++)
+    for (i = V_max(m_minY,halfY+1); i <= m_maxY; i++)
     {
         for (j = m_RangeStart[1][i]; j <= m_RangeEnd[1][i]; j++)
         {
@@ -963,7 +963,7 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
         }
     }
 
-    for (i = min(m_maxZ,halfZ); i >= m_minZ; i--)
+    for (i = V_min(m_maxZ,halfZ); i >= m_minZ; i--)
     {
         for (j = m_RangeStart[2][i]; j <= m_RangeEnd[2][i]; j++)
         {
@@ -979,7 +979,7 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
         }
     }
 
-    for (i = max(m_minX,halfX+1); i <= m_maxX; i++)
+    for (i = V_max(m_minX,halfX+1); i <= m_maxX; i++)
     {
         for (j = m_RangeStart[0][i]; j <= m_RangeEnd[0][i]; j++)
         {
@@ -996,7 +996,7 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
         }
     }
 
-    for (i = min(m_maxY,halfY); i >= m_minY; i--)
+    for (i = V_min(m_maxY,halfY); i >= m_minY; i--)
     {
         for (j = m_RangeStart[1][i]; j <= m_RangeEnd[1][i]; j++)
         {
@@ -1012,7 +1012,7 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
         }
     }
 
-    for (i = max(m_minZ,halfZ+1); i <= m_maxZ; i++)
+    for (i = V_max(m_minZ,halfZ+1); i <= m_maxZ; i++)
     {
         for (j = m_RangeStart[2][i]; j <= m_RangeEnd[2][i]; j++)
         {
@@ -1278,7 +1278,7 @@ int CGraph :: LinkVisibleNodes ( CLink *pLinkPool, FILE *file, int *piBadNode )
 					fprintf ( file, "  Entity on connection: %s, name: %s  Model: %s", STRING( VARS( pTraceEnt )->classname ), STRING ( VARS( pTraceEnt )->targetname ), STRING ( VARS(tr.pHit)->model ) );
 				}
 				
-				fprintf ( file, "\n", j );
+				fprintf ( file, "\n" );
 			}
 
 			pLinkPool [ cTotalLinks ].m_iDestNode = j;
@@ -1887,17 +1887,17 @@ void CTestHull :: BuildNodeGraph( void )
 						switch ( hull )
 						{
 						case NODE_SMALL_HULL:	// if this hull can't fit, nothing can, so drop the connection
-							fprintf ( file, "NODE_SMALL_HULL step %f\n", step );
+							fprintf ( file, "NODE_SMALL_HULL step %d\n", step );
 							pTempPool[ pSrcNode->m_iFirstLink + j ].m_afLinkInfo &= ~(bits_LINK_SMALL_HULL | bits_LINK_HUMAN_HULL | bits_LINK_LARGE_HULL);
 							fSkipRemainingHulls = TRUE;// don't bother checking larger hulls
 							break;
 						case NODE_HUMAN_HULL:
-							fprintf ( file, "NODE_HUMAN_HULL step %f\n", step );
+							fprintf ( file, "NODE_HUMAN_HULL step %d\n", step );
 							pTempPool[ pSrcNode->m_iFirstLink + j ].m_afLinkInfo &= ~(bits_LINK_HUMAN_HULL | bits_LINK_LARGE_HULL);
 							fSkipRemainingHulls = TRUE;// don't bother checking larger hulls
 							break;
 						case NODE_LARGE_HULL:
-							fprintf ( file, "NODE_LARGE_HULL step %f\n", step );
+							fprintf ( file, "NODE_LARGE_HULL step %d\n", step );
 							pTempPool[ pSrcNode->m_iFirstLink + j ].m_afLinkInfo &= ~bits_LINK_LARGE_HULL;
 							break;
 						}

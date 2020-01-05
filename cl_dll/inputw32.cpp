@@ -224,7 +224,7 @@ DWORD WINAPI MousePos_ThreadFunction( LPVOID p )
 IN_ActivateMouse
 ===========
 */
-void CL_DLLEXPORT IN_ActivateMouse (void)
+void DLLEXPORT IN_ActivateMouse (void)
 {
 	if (mouseinitialized)
 	{
@@ -243,7 +243,7 @@ void CL_DLLEXPORT IN_ActivateMouse (void)
 IN_DeactivateMouse
 ===========
 */
-void CL_DLLEXPORT IN_DeactivateMouse (void)
+void DLLEXPORT IN_DeactivateMouse (void)
 {
 	if (mouseinitialized)
 	{
@@ -376,7 +376,7 @@ void IN_ResetMouse( void )
 IN_MouseEvent
 ===========
 */
-void CL_DLLEXPORT IN_MouseEvent (int mstate)
+void DLLEXPORT IN_MouseEvent (int mstate)
 {
 	int		i;
 
@@ -590,7 +590,7 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 IN_Accumulate
 ===========
 */
-void CL_DLLEXPORT IN_Accumulate (void)
+void DLLEXPORT IN_Accumulate (void)
 {
 	//only accumulate mouse if we are not moving the camera with the mouse
 	if ( !iMouseInUse && !g_iVisibleMouse)
@@ -629,7 +629,7 @@ void CL_DLLEXPORT IN_Accumulate (void)
 IN_ClearStates
 ===================
 */
-void CL_DLLEXPORT IN_ClearStates (void)
+void DLLEXPORT IN_ClearStates (void)
 {
 	if ( !mouseactive )
 		return;
@@ -908,7 +908,7 @@ void IN_JoyMove ( float frametime, usercmd_t *cmd )
 				// y=ax^b; where a = 300 and b = 1.3
 				// also x values are in increments of 800 (so this is factored out)
 				// then bounds check result to level out excessively high spin rates
-				fTemp = 300.0 * pow(abs(fAxisValue) / 800.0, 1.3);
+				fTemp = 300.0 * pow( fabs(fAxisValue) / 800.0, 1.3);
 				if (fTemp > 14000.0)
 					fTemp = 14000.0;
 				// restore direction information

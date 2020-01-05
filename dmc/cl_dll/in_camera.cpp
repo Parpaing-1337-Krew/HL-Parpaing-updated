@@ -22,9 +22,9 @@ float CL_KeyState (kbutton_t *key);
 
 extern "C" 
 {
-	void EXPORT CAM_Think( void );
-	int EXPORT CL_IsThirdPerson( void );
-	void EXPORT CL_CameraOffset( float *ofs );
+	void DLLEXPORT CAM_Think( void );
+	int DLLEXPORT CL_IsThirdPerson( void );
+	void DLLEXPORT CL_CameraOffset( float *ofs );
 }
 
 extern cl_enginefunc_t gEngfuncs;
@@ -105,7 +105,7 @@ float MoveToward( float cur, float goal, float maxspeed )
 {
 	if( cur != goal )
 	{
-		if( abs( cur - goal ) > 180.0 )
+		if( fabs( cur - goal ) > 180.0 )
 		{
 			if( cur < goal )
 				cur += 360.0;
@@ -156,7 +156,7 @@ typedef struct
 
 extern trace_t SV_ClipMoveToEntity (edict_t *ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 
-void EXPORT CAM_Think( void )
+void DLLEXPORT CAM_Think( void )
 {
 	vec3_t origin;
 	vec3_t ext, pnt, camForward, camRight, camUp;
@@ -387,7 +387,7 @@ void EXPORT CAM_Think( void )
 		if( camAngles[ PITCH ] - viewangles[ PITCH ] != cam_idealpitch->value )
 			camAngles[ PITCH ] = MoveToward( camAngles[ PITCH ], cam_idealpitch->value + viewangles[ PITCH ], CAM_ANGLE_SPEED );
 
-		if( abs( camAngles[ 2 ] - cam_idealdist->value ) < 2.0 )
+		if( fabs( camAngles[ 2 ] - cam_idealdist->value ) < 2.0 )
 			camAngles[ 2 ] = cam_idealdist->value;
 		else
 			camAngles[ 2 ] += ( cam_idealdist->value - camAngles[ 2 ] ) / 4.0;
@@ -617,12 +617,12 @@ void CAM_EndDistance(void)
    iMouseInUse=0;
 }
 
-int EXPORT CL_IsThirdPerson( void )
+int DLLEXPORT CL_IsThirdPerson( void )
 {
 	return cam_thirdperson ? 1 : 0;
 }
 
-void EXPORT CL_CameraOffset( float *ofs )
+void DLLEXPORT CL_CameraOffset( float *ofs )
 {
 	VectorCopy( cam_ofs, ofs );
 }

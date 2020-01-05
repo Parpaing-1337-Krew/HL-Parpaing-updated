@@ -151,7 +151,7 @@ BOOL CBasePlayerWeapon :: DefaultReload( int iClipSize, int iAnim, float fDelay,
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		return FALSE;
 
-	int j = min(iClipSize - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
+	int j = V_min(iClipSize - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
 
 	if (j == 0)
 		return FALSE;
@@ -328,7 +328,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	{
 #if 0 // FIXME, need ammo on client to make this work right
 		// complete the reload. 
-		int j = min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
+		int j = V_min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
 
 		// Add them to the clip
 		m_iClip += j;
@@ -1051,7 +1051,7 @@ runfuncs is 1 if this is the first time we've predicted this command.  If so, so
 be ignored
 =====================
 */
-void CL_DLLEXPORT HUD_PostRunCmd( struct local_state_s *from, struct local_state_s *to, struct usercmd_s *cmd, int runfuncs, double time, unsigned int random_seed )
+void DLLEXPORT HUD_PostRunCmd( struct local_state_s *from, struct local_state_s *to, struct usercmd_s *cmd, int runfuncs, double time, unsigned int random_seed )
 {
 //	RecClPostRunCmd(from, to, cmd, runfuncs, time, random_seed);
 
