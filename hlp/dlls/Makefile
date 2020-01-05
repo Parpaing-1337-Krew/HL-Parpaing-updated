@@ -60,23 +60,17 @@ $(PM_SHARED_OBJDIR)/%.o: $(PM_SHARED_SRCDIR)/%.c
 	$(DO_CC)
 
 OBJ = \
-	$(DLL_OBJDIR)/aflock.o \
-	$(DLL_OBJDIR)/agrunt.o \
 	$(DLL_OBJDIR)/airtank.o \
 	$(DLL_OBJDIR)/animating.o \
 	$(DLL_OBJDIR)/animation.o \
-	$(DLL_OBJDIR)/apache.o \
-	$(DLL_OBJDIR)/barnacle.o \
 	$(DLL_OBJDIR)/barney.o \
 	$(DLL_OBJDIR)/bigmomma.o \
-	$(DLL_OBJDIR)/bloater.o \
 	$(DLL_OBJDIR)/bmodels.o \
 	$(DLL_OBJDIR)/bullsquid.o \
 	$(DLL_OBJDIR)/buttons.o \
 	$(DLL_OBJDIR)/cbase.o \
 	$(DLL_OBJDIR)/client.o \
 	$(DLL_OBJDIR)/combat.o \
-	$(DLL_OBJDIR)/controller.o \
 	$(DLL_OBJDIR)/crowbar.o \
 	$(DLL_OBJDIR)/defaultai.o \
 	$(DLL_OBJDIR)/doors.o \
@@ -87,25 +81,16 @@ OBJ = \
 	$(DLL_OBJDIR)/func_tank.o \
 	$(DLL_OBJDIR)/game.o \
 	$(DLL_OBJDIR)/gamerules.o \
-	$(DLL_OBJDIR)/gargantua.o \
 	$(DLL_OBJDIR)/genericmonster.o \
 	$(DLL_OBJDIR)/ggrenade.o \
 	$(DLL_OBJDIR)/globals.o \
-	$(DLL_OBJDIR)/gman.o \
 	$(DLL_OBJDIR)/h_ai.o \
 	$(DLL_OBJDIR)/h_battery.o \
 	$(DLL_OBJDIR)/h_cine.o \
 	$(DLL_OBJDIR)/h_cycler.o \
 	$(DLL_OBJDIR)/h_export.o \
-	$(DLL_OBJDIR)/hassassin.o \
-	$(DLL_OBJDIR)/headcrab.o \
 	$(DLL_OBJDIR)/healthkit.o \
-	$(DLL_OBJDIR)/hgrunt.o \
-	$(DLL_OBJDIR)/houndeye.o \
-	$(DLL_OBJDIR)/ichthyosaur.o \
-	$(DLL_OBJDIR)/islave.o \
 	$(DLL_OBJDIR)/items.o \
-	$(DLL_OBJDIR)/leech.o \
 	$(DLL_OBJDIR)/lights.o \
 	$(DLL_OBJDIR)/maprules.o \
 	$(DLL_OBJDIR)/monstermaker.o \
@@ -113,9 +98,7 @@ OBJ = \
 	$(DLL_OBJDIR)/monsterstate.o \
 	$(DLL_OBJDIR)/mortar.o \
 	$(DLL_OBJDIR)/multiplay_gamerules.o \
-	$(DLL_OBJDIR)/nihilanth.o \
 	$(DLL_OBJDIR)/nodes.o \
-	$(DLL_OBJDIR)/osprey.o \
 	$(DLL_OBJDIR)/pathcorner.o \
 	$(DLL_OBJDIR)/plane.o \
 	$(DLL_OBJDIR)/plats.o \
