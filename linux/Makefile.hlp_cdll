@@ -44,14 +44,20 @@ HLP_OBJS = \
 	$(HLP_OBJ_DIR)/hl/hl_weapons.o \
 	$(HLP_OBJ_DIR)/hud.o \
 	$(HLP_OBJ_DIR)/inputw32.o \
+	$(HLP_OBJ_DIR)/Alcool.o \
 	$(HLP_OBJ_DIR)/ammo.o \
 	$(HLP_OBJ_DIR)/ammo_secondary.o \
 	$(HLP_OBJ_DIR)/ammohistory.o \
+	$(HLP_OBJ_DIR)/bararea.o \
 	$(HLP_OBJ_DIR)/battery.o \
+	$(HLP_OBJ_DIR)/blame.o \
 	$(HLP_OBJ_DIR)/cdll_int.o \
+	$(HLP_OBJ_DIR)/chaos.o \
 	$(HLP_OBJ_DIR)/com_weapons.o \
 	$(HLP_OBJ_DIR)/death.o \
+	$(HLP_OBJ_DIR)/DefuseDaParpaing.o \
 	$(HLP_OBJ_DIR)/demo.o \
+	$(HLP_OBJ_DIR)/dtime.o \
 	$(HLP_OBJ_DIR)/entity.o \
 	$(HLP_OBJ_DIR)/ev_common.o \
 	$(HLP_OBJ_DIR)/events.o \
@@ -66,9 +72,12 @@ HLP_OBJS = \
 	$(HLP_OBJ_DIR)/hud_update.o \
 	$(HLP_OBJ_DIR)/in_camera.o \
 	$(HLP_OBJ_DIR)/input.o \
+	$(HLP_OBJ_DIR)/InspecteurSkill.o \
 	$(HLP_OBJ_DIR)/interpolation.o \
 	$(HLP_OBJ_DIR)/menu.o \
 	$(HLP_OBJ_DIR)/message.o \
+	$(HLP_OBJ_DIR)/mp3.o \
+	$(HLP_OBJ_DIR)/poseparpaing.o \
 	$(HLP_OBJ_DIR)/saytext.o \
 	$(HLP_OBJ_DIR)/status_icons.o \
 	$(HLP_OBJ_DIR)/statusbar.o \
@@ -84,6 +93,8 @@ HLP_OBJS = \
 	$(HLP_OBJ_DIR)/vgui_ConsolePanel.o \
 	$(HLP_OBJ_DIR)/vgui_ControlConfigPanel.o \
 	$(HLP_OBJ_DIR)/vgui_CustomObjects.o \
+	$(HLP_OBJ_DIR)/vgui_infos.o \
+	$(HLP_OBJ_DIR)/vgui_mapmenu.o \
 	$(HLP_OBJ_DIR)/vgui_MOTDWindow.o \
 	$(HLP_OBJ_DIR)/vgui_SchemeManager.o \
 	$(HLP_OBJ_DIR)/vgui_ScorePanel.o \
@@ -95,7 +106,10 @@ HLP_OBJS = \
 	$(HLP_OBJ_DIR)/hud_servers.o
 
 DLL_OBJS = \
-	$(HLP_SERVER_OBJ_DIR)/crowbar.o
+	$(HLP_SERVER_OBJ_DIR)/carnet.o \
+	$(HLP_SERVER_OBJ_DIR)/crowbar.o \
+	$(HLP_SERVER_OBJ_DIR)/parpaing.o \
+	$(HLP_SERVER_OBJ_DIR)/sifflet2.o
 
 PUBLIC_OBJS = \
 	$(PUBLIC_OBJ_DIR)/interface.o

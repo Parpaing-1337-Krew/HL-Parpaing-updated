@@ -34,16 +34,22 @@ HLPDLL_OBJS = \
 	$(HLPDLL_OBJ_DIR)/airtank.o \
 	$(HLPDLL_OBJ_DIR)/animating.o \
 	$(HLPDLL_OBJ_DIR)/animation.o \
+	$(HLPDLL_OBJ_DIR)/auto-help.o \
+	$(HLPDLL_OBJ_DIR)/bar.o \
 	$(HLPDLL_OBJ_DIR)/barney.o \
 	$(HLPDLL_OBJ_DIR)/bigmomma.o \
 	$(HLPDLL_OBJ_DIR)/bmodels.o \
 	$(HLPDLL_OBJ_DIR)/bullsquid.o \
 	$(HLPDLL_OBJ_DIR)/buttons.o \
+	$(HLPDLL_OBJ_DIR)/carnet.o \
 	$(HLPDLL_OBJ_DIR)/cbase.o \
 	$(HLPDLL_OBJ_DIR)/client.o \
 	$(HLPDLL_OBJ_DIR)/combat.o \
 	$(HLPDLL_OBJ_DIR)/crowbar.o \
+	$(HLPDLL_OBJ_DIR)/ctf.o \
+	$(HLPDLL_OBJ_DIR)/dayofparpaing.o \
 	$(HLPDLL_OBJ_DIR)/defaultai.o \
+	$(HLPDLL_OBJ_DIR)/defuse_the_parpaing.o \
 	$(HLPDLL_OBJ_DIR)/doors.o \
 	$(HLPDLL_OBJ_DIR)/effects.o \
 	$(HLPDLL_OBJ_DIR)/explode.o \
@@ -61,15 +67,19 @@ HLPDLL_OBJS = \
 	$(HLPDLL_OBJ_DIR)/h_cycler.o \
 	$(HLPDLL_OBJ_DIR)/h_export.o \
 	$(HLPDLL_OBJ_DIR)/healthkit.o \
+	$(HLPDLL_OBJ_DIR)/hlpsound.o \
 	$(HLPDLL_OBJ_DIR)/items.o \
 	$(HLPDLL_OBJ_DIR)/lights.o \
 	$(HLPDLL_OBJ_DIR)/maprules.o \
+	$(HLPDLL_OBJ_DIR)/megret.o \
 	$(HLPDLL_OBJ_DIR)/monstermaker.o \
 	$(HLPDLL_OBJ_DIR)/monsters.o \
 	$(HLPDLL_OBJ_DIR)/monsterstate.o \
 	$(HLPDLL_OBJ_DIR)/mortar.o \
+	$(HLPDLL_OBJ_DIR)/mur_parpaing.o \
 	$(HLPDLL_OBJ_DIR)/nodes.o \
 	$(HLPDLL_OBJ_DIR)/observer.o \
+	$(HLPDLL_OBJ_DIR)/parpaing.o \
 	$(HLPDLL_OBJ_DIR)/pathcorner.o \
 	$(HLPDLL_OBJ_DIR)/plane.o \
 	$(HLPDLL_OBJ_DIR)/plats.o \
@@ -79,10 +89,13 @@ HLPDLL_OBJS = \
 	$(HLPDLL_OBJ_DIR)/schedule.o \
 	$(HLPDLL_OBJ_DIR)/scientist.o \
 	$(HLPDLL_OBJ_DIR)/scripted.o \
+	$(HLPDLL_OBJ_DIR)/sifflet2.o \
 	$(HLPDLL_OBJ_DIR)/skill.o \
 	$(HLPDLL_OBJ_DIR)/sound.o \
 	$(HLPDLL_OBJ_DIR)/soundent.o \
+	$(HLPDLL_OBJ_DIR)/special_parpaing.o \
 	$(HLPDLL_OBJ_DIR)/spectator.o \
+	$(HLPDLL_OBJ_DIR)/sqlfunc.o \
 	$(HLPDLL_OBJ_DIR)/squadmonster.o \
 	$(HLPDLL_OBJ_DIR)/subs.o \
 	$(HLPDLL_OBJ_DIR)/talkmonster.o \

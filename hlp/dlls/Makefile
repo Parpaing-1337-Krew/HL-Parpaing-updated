@@ -63,16 +63,22 @@ OBJ = \
 	$(DLL_OBJDIR)/airtank.o \
 	$(DLL_OBJDIR)/animating.o \
 	$(DLL_OBJDIR)/animation.o \
+	$(DLL_OBJDIR)/auto-help.o \
+	$(DLL_OBJDIR)/bar.o \
 	$(DLL_OBJDIR)/barney.o \
 	$(DLL_OBJDIR)/bigmomma.o \
 	$(DLL_OBJDIR)/bmodels.o \
 	$(DLL_OBJDIR)/bullsquid.o \
 	$(DLL_OBJDIR)/buttons.o \
+	$(DLL_OBJDIR)/carnet.o \
 	$(DLL_OBJDIR)/cbase.o \
 	$(DLL_OBJDIR)/client.o \
 	$(DLL_OBJDIR)/combat.o \
 	$(DLL_OBJDIR)/crowbar.o \
+	$(DLL_OBJDIR)/ctf.o \
+	$(DLL_OBJDIR)/dayofparpaing.o \
 	$(DLL_OBJDIR)/defaultai.o \
+	$(DLL_OBJDIR)/defuse_the_parpaing.o \
 	$(DLL_OBJDIR)/doors.o \
 	$(DLL_OBJDIR)/effects.o \
 	$(DLL_OBJDIR)/explode.o \
@@ -90,15 +96,19 @@ OBJ = \
 	$(DLL_OBJDIR)/h_cycler.o \
 	$(DLL_OBJDIR)/h_export.o \
 	$(DLL_OBJDIR)/healthkit.o \
+	$(DLL_OBJDIR)/hlpsound.o \
 	$(DLL_OBJDIR)/items.o \
 	$(DLL_OBJDIR)/lights.o \
 	$(DLL_OBJDIR)/maprules.o \
+	$(DLL_OBJDIR)/megret.o \
 	$(DLL_OBJDIR)/monstermaker.o \
 	$(DLL_OBJDIR)/monsters.o \
 	$(DLL_OBJDIR)/monsterstate.o \
 	$(DLL_OBJDIR)/mortar.o \
 	$(DLL_OBJDIR)/multiplay_gamerules.o \
+	$(DLL_OBJDIR)/mur_parpaing.o \
 	$(DLL_OBJDIR)/nodes.o \
+	$(DLL_OBJDIR)/parpaing.o \
 	$(DLL_OBJDIR)/pathcorner.o \
 	$(DLL_OBJDIR)/plane.o \
 	$(DLL_OBJDIR)/plats.o \
@@ -108,11 +118,14 @@ OBJ = \
 	$(DLL_OBJDIR)/schedule.o \
 	$(DLL_OBJDIR)/scientist.o \
 	$(DLL_OBJDIR)/scripted.o \
+	$(DLL_OBJDIR)/sifflet2.o \
 	$(DLL_OBJDIR)/singleplay_gamerules.o \
 	$(DLL_OBJDIR)/skill.o \
 	$(DLL_OBJDIR)/sound.o \
 	$(DLL_OBJDIR)/soundent.o \
+	$(DLL_OBJDIR)/special_parpaing.o \
 	$(DLL_OBJDIR)/spectator.o \
+	$(DLL_OBJDIR)/sqlfunc.o \
 	$(DLL_OBJDIR)/squadmonster.o \
 	$(DLL_OBJDIR)/subs.o \
 	$(DLL_OBJDIR)/talkmonster.o \

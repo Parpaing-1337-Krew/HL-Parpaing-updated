@@ -107,14 +107,20 @@
     <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\hlp\cl_dll\Alcool.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\ammo.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\ammohistory.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\ammo_secondary.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\bararea.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\battery.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\blame.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\cdll_int.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\chaos.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\com_weapons.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\death.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\DefuseDaParpaing.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\demo.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\dtime.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\entity.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\events.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\ev_common.cpp" />
@@ -137,10 +143,13 @@
     <ClCompile Include="..\..\hlp\cl_dll\hud_update.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\input.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\inputw32.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\InspecteurSkill.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\interpolation.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\in_camera.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\menu.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\mp3.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\message.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\poseparpaing.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\saytext.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\statusbar.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\status_icons.cpp" />
@@ -153,7 +162,9 @@
     <ClCompile Include="..\..\hlp\cl_dll\vgui_ClassMenu.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_ControlConfigPanel.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_CustomObjects.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\vgui_infos.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_int.cpp" />
+    <ClCompile Include="..\..\hlp\cl_dll\vgui_mapmenu.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_MOTDWindow.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_SchemeManager.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\vgui_ScorePanel.cpp" />
@@ -164,7 +175,10 @@
     <ClCompile Include="..\..\hlp\cl_dll\view.cpp" />
     <ClCompile Include="..\..\hlp\cl_dll\voice_status.cpp" />
     <ClCompile Include="..\..\common\parsemsg.cpp" />
+    <ClCompile Include="..\..\hlp\dlls\carnet.cpp" />
     <ClCompile Include="..\..\hlp\dlls\crowbar.cpp" />
+    <ClCompile Include="..\..\hlp\dlls\parpaing.cpp" />
+    <ClCompile Include="..\..\hlp\dlls\sifflet2.cpp" />
     <ClCompile Include="..\..\game_shared\vgui_checkbutton2.cpp" />
     <ClCompile Include="..\..\game_shared\vgui_grid.cpp" />
     <ClCompile Include="..\..\game_shared\vgui_helpers.cpp" />
@@ -188,6 +202,8 @@
     <ClInclude Include="..\..\hlp\cl_dll\demo.h" />
     <ClInclude Include="..\..\hlp\cl_dll\eventscripts.h" />
     <ClInclude Include="..\..\hlp\cl_dll\ev_hldm.h" />
+    <ClInclude Include="..\..\hlp\cl_dll\fmod.h" />
+    <ClInclude Include="..\..\hlp\cl_dll\fmod_errors.h" />
     <ClInclude Include="..\..\hlp\cl_dll\GameStudioModelRenderer.h" />
     <ClInclude Include="..\..\hlp\cl_dll\health.h" />
     <ClInclude Include="..\..\hlp\cl_dll\hud.h" />
@@ -201,13 +217,16 @@
     <ClInclude Include="..\..\hlp\cl_dll\tri.h" />
     <ClInclude Include="..\..\hlp\cl_dll\util_vector.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_ControlConfigPanel.h" />
+    <ClInclude Include="..\..\hlp\cl_dll\vgui_InfosPanel.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_int.h" />
+    <ClInclude Include="..\..\hlp\cl_dll\vgui_MOTD.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_SchemeManager.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_ScorePanel.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_ServerBrowser.h" />
     <ClInclude Include="..\..\hlp\cl_dll\vgui_SpectatorPanel.h" />
     <ClInclude Include="..\..\hlp\cl_dll\view.h" />
     <ClInclude Include="..\..\hlp\cl_dll\wrect.h" />
+    <ClInclude Include="..\..\hlp\dlls\extdll.h" />
     <ClInclude Include="..\..\common\parsemsg.h" />
     <ClInclude Include="..\..\common\Platform.h" />
     <ClInclude Include="..\..\game_shared\vgui_scrollbar2.h" />
