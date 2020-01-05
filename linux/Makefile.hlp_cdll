@@ -1,0 +1,195 @@
+#
+# hlp client Makefile for x86 Linux
+#
+# Jan 2010 by Ruzgfpegk (Ruzgfpegk@zero-sum.fr)
+#
+
+HLP_SRC_DIR=$(SOURCE_DIR)/hlp/cl_dll
+HLP_SERVER_SRC_DIR=$(SOURCE_DIR)/hlp/dlls
+GAME_SHARED_SRC_DIR=$(SOURCE_DIR)/game_shared
+PM_SHARED_SRC_DIR=$(SOURCE_DIR)/pm_shared
+
+HLP_OBJ_DIR=$(BUILD_OBJ_DIR)/hlp_client
+PUBLIC_OBJ_DIR=$(HLP_OBJ_DIR)/public
+COMMON_OBJ_DIR=$(HLP_OBJ_DIR)/common
+GAME_SHARED_OBJ_DIR=$(HLP_OBJ_DIR)/game_shared
+HLP_SERVER_OBJ_DIR=$(HLP_OBJ_DIR)/server
+PM_SHARED_OBJ_DIR=$(HLP_OBJ_DIR)/pm_shared
+
+CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/usr/include/malloc -D_snwprintf=swprintf \
+	-DDISABLE_JUMP_ORIGIN -DDISABLE_VEC_ORIGIN
+
+INCLUDEDIRS=-I$(HLP_SRC_DIR) -I$(HLP_SERVER_SRC_DIR) -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared \
+	-I../engine -I../utils/vgui/include -I ../game_shared -I../external
+
+ifeq ($(OS),Darwin)
+LDFLAGS=$(SHLIBLDFLAGS) $(CPP_LIB) -framework Carbon $(CFG)/vgui.dylib -L. -lSDL2-2.0.0
+else
+LDFLAGS=$(SHLIBLDFLAGS) $(CPP_LIB)  -L$(CFG) vgui.so -L. libSDL2-2.0.so.0
+endif
+
+DO_CC=$(CPLUS) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_PUBLIC_CC=$(CPLUS) $(COMMON_INCLUDEDIRS) $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
+DO_COMMON_CC=$(CPLUS) $(INCLUDEDIRS)  $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
+DO_PM_SHARED_CC=$(CC) $(INCLUDEDIRS)  $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
+
+#####################################################################
+
+HL1_OBJS = \
+	$(HLP_OBJ_DIR)/hud_spectator.o \
+	$(HLP_OBJ_DIR)/ev_hldm.o \
+	$(HLP_OBJ_DIR)/hl/hl_baseentity.o \
+	$(HLP_OBJ_DIR)/hl/hl_events.o \
+	$(HLP_OBJ_DIR)/hl/hl_objects.o \
+	$(HLP_OBJ_DIR)/hl/hl_weapons.o \
+	$(HLP_OBJ_DIR)/hud.o \
+	$(HLP_OBJ_DIR)/inputw32.o \
+	$(HLP_OBJ_DIR)/ammo.o \
+	$(HLP_OBJ_DIR)/ammo_secondary.o \
+	$(HLP_OBJ_DIR)/ammohistory.o \
+	$(HLP_OBJ_DIR)/battery.o \
+	$(HLP_OBJ_DIR)/cdll_int.o \
+	$(HLP_OBJ_DIR)/com_weapons.o \
+	$(HLP_OBJ_DIR)/death.o \
+	$(HLP_OBJ_DIR)/demo.o \
+	$(HLP_OBJ_DIR)/entity.o \
+	$(HLP_OBJ_DIR)/ev_common.o \
+	$(HLP_OBJ_DIR)/events.o \
+	$(HLP_OBJ_DIR)/flashlight.o \
+	$(HLP_OBJ_DIR)/GameStudioModelRenderer.o \
+	$(HLP_OBJ_DIR)/geiger.o \
+	$(HLP_OBJ_DIR)/health.o \
+	$(HLP_OBJ_DIR)/hud_bench.o \
+	$(HLP_OBJ_DIR)/hud_benchtrace.o \
+	$(HLP_OBJ_DIR)/hud_msg.o \
+	$(HLP_OBJ_DIR)/hud_redraw.o \
+	$(HLP_OBJ_DIR)/hud_update.o \
+	$(HLP_OBJ_DIR)/in_camera.o \
+	$(HLP_OBJ_DIR)/input.o \
+	$(HLP_OBJ_DIR)/interpolation.o \
+	$(HLP_OBJ_DIR)/menu.o \
+	$(HLP_OBJ_DIR)/message.o \
+	$(HLP_OBJ_DIR)/saytext.o \
+	$(HLP_OBJ_DIR)/status_icons.o \
+	$(HLP_OBJ_DIR)/statusbar.o \
+	$(HLP_OBJ_DIR)/studio_util.o \
+	$(HLP_OBJ_DIR)/StudioModelRenderer.o \
+	$(HLP_OBJ_DIR)/text_message.o \
+	$(HLP_OBJ_DIR)/train.o \
+	$(HLP_OBJ_DIR)/tri.o \
+	$(HLP_OBJ_DIR)/util.o \
+	$(HLP_OBJ_DIR)/view.o \
+	$(HLP_OBJ_DIR)/vgui_int.o \
+	$(HLP_OBJ_DIR)/vgui_ClassMenu.o \
+	$(HLP_OBJ_DIR)/vgui_ConsolePanel.o \
+	$(HLP_OBJ_DIR)/vgui_ControlConfigPanel.o \
+	$(HLP_OBJ_DIR)/vgui_CustomObjects.o \
+	$(HLP_OBJ_DIR)/vgui_MOTDWindow.o \
+	$(HLP_OBJ_DIR)/vgui_SchemeManager.o \
+	$(HLP_OBJ_DIR)/vgui_ScorePanel.o \
+	$(HLP_OBJ_DIR)/vgui_ServerBrowser.o \
+	$(HLP_OBJ_DIR)/vgui_TeamFortressViewport.o \
+	$(HLP_OBJ_DIR)/vgui_SpectatorPanel.o \
+	$(HLP_OBJ_DIR)/vgui_teammenu.o \
+	$(HLP_OBJ_DIR)/voice_status.o \
+	$(HLP_OBJ_DIR)/hud_servers.o \
+	
+
+DLL_OBJS = \
+	$(HLP_SERVER_OBJ_DIR)/crossbow.o \
+	$(HLP_SERVER_OBJ_DIR)/crowbar.o \
+	$(HLP_SERVER_OBJ_DIR)/egon.o \
+	$(HLP_SERVER_OBJ_DIR)/gauss.o \
+	$(HLP_SERVER_OBJ_DIR)/handgrenade.o \
+	$(HLP_SERVER_OBJ_DIR)/hornetgun.o \
+	$(HLP_SERVER_OBJ_DIR)/mp5.o \
+	$(HLP_SERVER_OBJ_DIR)/python.o \
+	$(HLP_SERVER_OBJ_DIR)/rpg.o \
+	$(HLP_SERVER_OBJ_DIR)/satchel.o \
+	$(HLP_SERVER_OBJ_DIR)/shotgun.o \
+	$(HLP_SERVER_OBJ_DIR)/squeakgrenade.o \
+	$(HLP_SERVER_OBJ_DIR)/tripmine.o \
+	$(HLP_SERVER_OBJ_DIR)/wpn_shared/hl_wpn_glock.o \
+
+
+PUBLIC_OBJS = \
+	$(PUBLIC_OBJ_DIR)/interface.o \
+
+COMMON_OBJS = \
+	$(COMMON_OBJ_DIR)/parsemsg.o \
+
+GAME_SHARED_OBJS = \
+	$(GAME_SHARED_OBJ_DIR)/vgui_checkbutton2.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_grid.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_helpers.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_listbox.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_loadtga.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_scrollbar2.o \
+	$(GAME_SHARED_OBJ_DIR)/vgui_slider2.o \
+	$(GAME_SHARED_OBJ_DIR)/voice_banmgr.o \
+	
+PM_SHARED_OBJS = \
+	$(PM_SHARED_OBJ_DIR)/pm_debug.o \
+	$(PM_SHARED_OBJ_DIR)/pm_shared.o \
+	$(PM_SHARED_OBJ_DIR)/pm_math.o \
+	
+
+
+all: client_hlp.$(SHLIBEXT)
+
+client_hlp.$(SHLIBEXT): $(HL1_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS)
+	$(CLINK) -o $(BUILD_DIR)/$@ $(HL1_OBJS) $(PUBLIC_OBJS) $(COMMON_OBJS) $(GAME_SHARED_OBJS) $(DLL_OBJS) $(PM_SHARED_OBJS) $(LDFLAGS) $(CPP_LIB)
+	./gendbg.sh $(BUILD_DIR)/client.$(SHLIBEXT)
+
+$(HLP_OBJ_DIR):
+	mkdir -p $(HLP_OBJ_DIR)
+	mkdir -p $(HLP_OBJ_DIR)/hl
+	mkdir -p $(HLP_OBJ_DIR)/dlls/wpn_shared
+	mkdir -p $(HLP_OBJ_DIR)/VGUI
+
+$(HLP_SERVER_OBJ_DIR):
+	mkdir -p $(HLP_SERVER_OBJ_DIR)
+	mkdir -p $(HLP_SERVER_OBJ_DIR)/wpn_shared
+
+$(PUBLIC_OBJ_DIR):
+	mkdir -p $(PUBLIC_OBJ_DIR)
+
+$(COMMON_OBJ_DIR):
+	mkdir -p $(COMMON_OBJ_DIR)
+
+$(GAME_SHARED_OBJ_DIR):
+	mkdir -p $(GAME_SHARED_OBJ_DIR)
+
+$(PM_SHARED_OBJ_DIR):
+	mkdir -p $(PM_SHARED_OBJ_DIR)
+
+$(HLP_OBJ_DIR)/%.o: $(HLP_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(HLP_OBJ_DIR)),  $(HLP_OBJ_DIR))
+	$(DO_CC)
+
+$(HLP_SERVER_OBJ_DIR)/%.o: $(HLP_SERVER_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(HLP_SERVER_OBJ_DIR)),  $(HLP_SERVER_OBJ_DIR))
+	$(DO_CC)
+
+$(HLP_OBJ_DIR)/%.o: $(HLP_SRC_DIR)/hl/%.cpp $(filter-out $(wildcard  $(HLP_OBJ_DIR)),  $(HLP_OBJ_DIR))
+	$(DO_CC)
+
+$(HLP_OBJ_DIR)/%.o: $(HLP_SRC_DIR)/dlls/wpn_shared/%.cpp $(filter-out $(wildcard  $(HLP_OBJ_DIR)),  $(HLP_OBJ_DIR))
+	$(DO_CC)
+
+$(HLP_OBJ_DIR)/%.o: $(HLP_SRC_DIR)/VGUI/%.cpp $(filter-out $(wildcard  $(HLP_OBJ_DIR)),  $(HLP_OBJ_DIR))
+	$(DO_CC)
+
+$(PUBLIC_OBJ_DIR)/%.o : $(PUBLIC_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(PUBLIC_OBJ_DIR)),  $(PUBLIC_OBJ_DIR))
+	$(DO_PUBLIC_CC)
+
+$(COMMON_OBJ_DIR)/%.o : $(COMMON_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(COMMON_OBJ_DIR)),  $(COMMON_OBJ_DIR))
+	$(DO_COMMON_CC)
+
+$(GAME_SHARED_OBJ_DIR)/%.o : $(GAME_SHARED_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(GAME_SHARED_OBJ_DIR)),  $(GAME_SHARED_OBJ_DIR))
+	$(DO_COMMON_CC)
+
+$(PM_SHARED_OBJ_DIR)/%.o : $(PM_SHARED_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(PM_SHARED_OBJ_DIR)),  $(PM_SHARED_OBJ_DIR))
+	$(DO_PM_SHARED_CC)
+
+clean:
+	-rm -rf $(HLP_OBJ_DIR)
+	-rm -f client.$(SHLIBEXT)

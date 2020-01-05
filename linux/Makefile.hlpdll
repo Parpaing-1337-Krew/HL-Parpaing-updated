@@ -1,0 +1,174 @@
+#
+# HLP game library Makefile for x86 Linux
+#
+# Feb 2001 by Leon Hartwig (hartwig@valvesoftware.com) (original file for Half-Life)
+# Jan 2010 by Ruzgfpegk (Ruzgfpegk@zero-sum.fr)
+#
+
+HLPDLL_SRC_DIR=$(SOURCE_DIR)/hlp/dlls
+HLPWPN_SRC_DIR=$(HLPDLL_SRC_DIR)/wpn_shared
+
+HLPDLL_OBJ_DIR=$(BUILD_OBJ_DIR)/hlpdll
+HLPWPN_OBJ_DIR=$(HLPDLL_OBJ_DIR)/wpn_shared
+PM_OBJ_DIR=$(HLPDLL_OBJ_DIR)/pm_shared
+GAME_SHARED_OBJ_DIR=$(HLPDLL_OBJ_DIR)/game_shared
+
+#CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) $(SHLIBCFLAGS) -DCLIENT_WEAPONS
+CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS
+#-O3 -ffast-math -fno-strength-reduce
+
+HLPDLL_INCLUDEDIRS=-I$(ENGINE_SRC_DIR) -I$(COMMON_SRC_DIR) -I$(PM_SRC_DIR) -I$(GAME_SHARED_SRC_DIR) -I$(PUBLIC_SRC_DIR)
+HLPWPN_INCLUDEDIRS=-I$(HLPDLL_SRC_DIR) -I$(ENGINE_SRC_DIR) -I$(COMMON_SRC_DIR) -I$(PM_SRC_DIR) -I$(PUBLIC_SRC_DIR)
+PM_INCLUDEDIRS=-I$(COMMON_SRC_DIR)  -I$(PUBLIC_SRC_DIR)
+GAME_SHARED_INCLUDEDIRS=-I$(HLPDLL_SRC_DIR) -I$(ENGINE_SRC_DIR) -I$(COMMON_SRC_DIR) -I$(PM_SRC_DIR) -I$(PUBLIC_SRC_DIR)
+
+LDFLAGS= -lm -lstdc++
+
+DO_HLDLL_CC=$(CC) $(HLPDLL_INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_HLWPN_CC=$(CC) $(HLPWPN_INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_PM_CC=$(CC) $(PM_INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_GAME_SHARED_CC=$(CC) $(GAME_SHARED_INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+
+#####################################################################
+
+HLPDLL_OBJS = \
+	$(HLPDLL_OBJ_DIR)/aflock.o \
+	$(HLPDLL_OBJ_DIR)/agrunt.o \
+	$(HLPDLL_OBJ_DIR)/airtank.o \
+	$(HLPDLL_OBJ_DIR)/animating.o \
+	$(HLPDLL_OBJ_DIR)/animation.o \
+	$(HLPDLL_OBJ_DIR)/apache.o \
+	$(HLPDLL_OBJ_DIR)/barnacle.o \
+	$(HLPDLL_OBJ_DIR)/barney.o \
+	$(HLPDLL_OBJ_DIR)/bigmomma.o \
+	$(HLPDLL_OBJ_DIR)/bloater.o \
+	$(HLPDLL_OBJ_DIR)/bmodels.o \
+	$(HLPDLL_OBJ_DIR)/bullsquid.o \
+	$(HLPDLL_OBJ_DIR)/buttons.o \
+	$(HLPDLL_OBJ_DIR)/cbase.o \
+	$(HLPDLL_OBJ_DIR)/client.o \
+	$(HLPDLL_OBJ_DIR)/combat.o \
+	$(HLPDLL_OBJ_DIR)/controller.o \
+	$(HLPDLL_OBJ_DIR)/crossbow.o \
+	$(HLPDLL_OBJ_DIR)/crowbar.o \
+	$(HLPDLL_OBJ_DIR)/defaultai.o \
+	$(HLPDLL_OBJ_DIR)/doors.o \
+	$(HLPDLL_OBJ_DIR)/effects.o \
+	$(HLPDLL_OBJ_DIR)/egon.o \
+	$(HLPDLL_OBJ_DIR)/explode.o \
+	$(HLPDLL_OBJ_DIR)/flyingmonster.o \
+	$(HLPDLL_OBJ_DIR)/func_break.o \
+	$(HLPDLL_OBJ_DIR)/func_tank.o \
+	$(HLPDLL_OBJ_DIR)/game.o \
+	$(HLPDLL_OBJ_DIR)/gamerules.o \
+	$(HLPDLL_OBJ_DIR)/gargantua.o \
+	$(HLPDLL_OBJ_DIR)/gauss.o \
+	$(HLPDLL_OBJ_DIR)/genericmonster.o \
+	$(HLPDLL_OBJ_DIR)/ggrenade.o \
+	$(HLPDLL_OBJ_DIR)/globals.o \
+	$(HLPDLL_OBJ_DIR)/gman.o \
+	$(HLPDLL_OBJ_DIR)/h_ai.o \
+	$(HLPDLL_OBJ_DIR)/h_battery.o \
+	$(HLPDLL_OBJ_DIR)/h_cine.o \
+	$(HLPDLL_OBJ_DIR)/h_cycler.o \
+	$(HLPDLL_OBJ_DIR)/h_export.o \
+	$(HLPDLL_OBJ_DIR)/handgrenade.o \
+	$(HLPDLL_OBJ_DIR)/hassassin.o \
+	$(HLPDLL_OBJ_DIR)/headcrab.o \
+	$(HLPDLL_OBJ_DIR)/healthkit.o \
+	$(HLPDLL_OBJ_DIR)/hgrunt.o \
+	$(HLPDLL_OBJ_DIR)/hornet.o \
+	$(HLPDLL_OBJ_DIR)/hornetgun.o \
+	$(HLPDLL_OBJ_DIR)/houndeye.o \
+	$(HLPDLL_OBJ_DIR)/ichthyosaur.o \
+	$(HLPDLL_OBJ_DIR)/islave.o \
+	$(HLPDLL_OBJ_DIR)/items.o \
+	$(HLPDLL_OBJ_DIR)/leech.o \
+	$(HLPDLL_OBJ_DIR)/lights.o \
+	$(HLPDLL_OBJ_DIR)/maprules.o \
+	$(HLPDLL_OBJ_DIR)/monstermaker.o \
+	$(HLPDLL_OBJ_DIR)/monsters.o \
+	$(HLPDLL_OBJ_DIR)/monsterstate.o \
+	$(HLPDLL_OBJ_DIR)/mortar.o \
+	$(HLPDLL_OBJ_DIR)/mp5.o \
+	$(HLPDLL_OBJ_DIR)/nihilanth.o \
+	$(HLPDLL_OBJ_DIR)/nodes.o \
+	$(HLPDLL_OBJ_DIR)/observer.o \
+	$(HLPDLL_OBJ_DIR)/osprey.o \
+	$(HLPDLL_OBJ_DIR)/pathcorner.o \
+	$(HLPDLL_OBJ_DIR)/plane.o \
+	$(HLPDLL_OBJ_DIR)/plats.o \
+	$(HLPDLL_OBJ_DIR)/player.o \
+	$(HLPDLL_OBJ_DIR)/python.o \
+	$(HLPDLL_OBJ_DIR)/rat.o \
+	$(HLPDLL_OBJ_DIR)/roach.o \
+	$(HLPDLL_OBJ_DIR)/rpg.o \
+	$(HLPDLL_OBJ_DIR)/satchel.o \
+	$(HLPDLL_OBJ_DIR)/schedule.o \
+	$(HLPDLL_OBJ_DIR)/scientist.o \
+	$(HLPDLL_OBJ_DIR)/scripted.o \
+	$(HLPDLL_OBJ_DIR)/shotgun.o \
+	$(HLPDLL_OBJ_DIR)/skill.o \
+	$(HLPDLL_OBJ_DIR)/sound.o \
+	$(HLPDLL_OBJ_DIR)/soundent.o \
+	$(HLPDLL_OBJ_DIR)/spectator.o \
+	$(HLPDLL_OBJ_DIR)/squadmonster.o \
+	$(HLPDLL_OBJ_DIR)/squeakgrenade.o \
+	$(HLPDLL_OBJ_DIR)/subs.o \
+	$(HLPDLL_OBJ_DIR)/talkmonster.o \
+	$(HLPDLL_OBJ_DIR)/teamplay_gamerules.o \
+	$(HLPDLL_OBJ_DIR)/multiplay_gamerules.o \
+	$(HLPDLL_OBJ_DIR)/singleplay_gamerules.o \
+	$(HLPDLL_OBJ_DIR)/tempmonster.o \
+	$(HLPDLL_OBJ_DIR)/tentacle.o \
+	$(HLPDLL_OBJ_DIR)/triggers.o \
+	$(HLPDLL_OBJ_DIR)/tripmine.o \
+	$(HLPDLL_OBJ_DIR)/turret.o \
+	$(HLPDLL_OBJ_DIR)/util.o \
+	$(HLPDLL_OBJ_DIR)/weapons.o \
+	$(HLPDLL_OBJ_DIR)/world.o \
+	$(HLPDLL_OBJ_DIR)/xen.o \
+	$(HLPDLL_OBJ_DIR)/zombie.o
+
+HLPWPN_OBJS = \
+	$(HLPWPN_OBJ_DIR)/hl_wpn_glock.o
+
+PM_OBJS = \
+	$(PM_OBJ_DIR)/pm_shared.o \
+	$(PM_OBJ_DIR)/pm_math.o \
+	$(PM_OBJ_DIR)/pm_debug.o
+
+GAME_SHARED_OBJS = \
+	$(GAME_SHARED_OBJ_DIR)/voice_gamemgr.o
+
+all: dirs hlp.$(SHLIBEXT)
+
+dirs:
+	-mkdir $(BUILD_OBJ_DIR)
+	-mkdir $(HLPDLL_OBJ_DIR)
+	-mkdir $(HLPWPN_OBJ_DIR)
+	-mkdir $(PM_OBJ_DIR)
+	-mkdir $(GAME_SHARED_OBJ_DIR)
+
+hlp.$(SHLIBEXT): $(HLPDLL_OBJS) $(HLPWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
+	$(CC) $(LDFLAGS) $(SHLIBLDFLAGS) -o $(BUILD_DIR)/$@ $(HLPDLL_OBJS) $(HLPWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
+	./gendbg.sh $(BUILD_DIR)/hlp.$(SHLIBEXT)
+	
+$(HLPWPN_OBJ_DIR)/%.o : $(HLPWPN_SRC_DIR)/%.cpp
+	$(DO_HLWPN_CC)
+
+$(HLPDLL_OBJ_DIR)/%.o : $(HLPDLL_SRC_DIR)/%.cpp
+	$(DO_HLDLL_CC)
+
+$(PM_OBJ_DIR)/%.o : $(PM_SRC_DIR)/%.cpp
+	$(DO_PM_CC)
+
+$(GAME_SHARED_OBJ_DIR)/%.o : $(GAME_SHARED_SRC_DIR)/%.cpp
+	$(DO_GAME_SHARED_CC)
+
+clean:
+	-rm -rf $(GAME_SHARED_OBJ_DIR)
+	-rm -rf $(PM_OBJ_DIR)
+	-rm -rf $(HLPWPN_OBJ_DIR)
+	-rm -rf $(HLPDLL_OBJ_DIR)
+	-rm -f hlp_$(ARCH).$(SHLIBEXT)
