@@ -92,31 +92,16 @@ HLP_OBJS = \
 	$(HLP_OBJ_DIR)/vgui_SpectatorPanel.o \
 	$(HLP_OBJ_DIR)/vgui_teammenu.o \
 	$(HLP_OBJ_DIR)/voice_status.o \
-	$(HLP_OBJ_DIR)/hud_servers.o \
-	
+	$(HLP_OBJ_DIR)/hud_servers.o
 
 DLL_OBJS = \
-	$(HLP_SERVER_OBJ_DIR)/crossbow.o \
-	$(HLP_SERVER_OBJ_DIR)/crowbar.o \
-	$(HLP_SERVER_OBJ_DIR)/egon.o \
-	$(HLP_SERVER_OBJ_DIR)/gauss.o \
-	$(HLP_SERVER_OBJ_DIR)/handgrenade.o \
-	$(HLP_SERVER_OBJ_DIR)/hornetgun.o \
-	$(HLP_SERVER_OBJ_DIR)/mp5.o \
-	$(HLP_SERVER_OBJ_DIR)/python.o \
-	$(HLP_SERVER_OBJ_DIR)/rpg.o \
-	$(HLP_SERVER_OBJ_DIR)/satchel.o \
-	$(HLP_SERVER_OBJ_DIR)/shotgun.o \
-	$(HLP_SERVER_OBJ_DIR)/squeakgrenade.o \
-	$(HLP_SERVER_OBJ_DIR)/tripmine.o \
-	$(HLP_SERVER_OBJ_DIR)/wpn_shared/hl_wpn_glock.o \
-
+	$(HLP_SERVER_OBJ_DIR)/crowbar.o
 
 PUBLIC_OBJS = \
-	$(PUBLIC_OBJ_DIR)/interface.o \
+	$(PUBLIC_OBJ_DIR)/interface.o
 
 COMMON_OBJS = \
-	$(COMMON_OBJ_DIR)/parsemsg.o \
+	$(COMMON_OBJ_DIR)/parsemsg.o
 
 GAME_SHARED_OBJS = \
 	$(GAME_SHARED_OBJ_DIR)/vgui_checkbutton2.o \
@@ -126,12 +111,12 @@ GAME_SHARED_OBJS = \
 	$(GAME_SHARED_OBJ_DIR)/vgui_loadtga.o \
 	$(GAME_SHARED_OBJ_DIR)/vgui_scrollbar2.o \
 	$(GAME_SHARED_OBJ_DIR)/vgui_slider2.o \
-	$(GAME_SHARED_OBJ_DIR)/voice_banmgr.o \
-	
+	$(GAME_SHARED_OBJ_DIR)/voice_banmgr.o
+
 PM_SHARED_OBJS = \
 	$(PM_SHARED_OBJ_DIR)/pm_debug.o \
 	$(PM_SHARED_OBJ_DIR)/pm_shared.o \
-	$(PM_SHARED_OBJ_DIR)/pm_math.o \
+	$(PM_SHARED_OBJ_DIR)/pm_math.o
 	
 
 

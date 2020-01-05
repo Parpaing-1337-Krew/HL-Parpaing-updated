@@ -14,12 +14,10 @@ CC=gcc
 DLL_SRCDIR=.
 ENGINE_SRCDIR=../engine
 COMMON_SRCDIR=../common
-WPN_SHARED_SRCDIR=./wpn_shared
 PM_SHARED_SRCDIR=../pm_shared
 GAME_SHARED_SRCDIR=../game_shared
 
 DLL_OBJDIR=$(DLL_SRCDIR)/obj
-WPN_SHARED_OBJDIR=$(WPN_SHARED_SRCDIR)/obj
 PM_SHARED_OBJDIR=$(PM_SHARED_SRCDIR)/obj
 GAME_SHARED_OBJDIR=$(GAME_SHARED_SRCDIR)/obj
 
@@ -55,9 +53,6 @@ DO_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(INCLUDEDIRS) -o $@ -c $<
 $(DLL_OBJDIR)/%.o: $(DLL_SRCDIR)/%.cpp
 	$(DO_CC)
 
-$(WPN_SHARED_OBJDIR)/%.o: $(WPN_SHARED_SRCDIR)/%.cpp
-	$(DO_CC)
-
 $(GAME_SHARED_OBJDIR)/%.o: $(GAME_SHARED_SRCDIR)/%.cpp
 	$(DO_CC)
 
@@ -82,12 +77,10 @@ OBJ = \
 	$(DLL_OBJDIR)/client.o \
 	$(DLL_OBJDIR)/combat.o \
 	$(DLL_OBJDIR)/controller.o \
-	$(DLL_OBJDIR)/crossbow.o \
 	$(DLL_OBJDIR)/crowbar.o \
 	$(DLL_OBJDIR)/defaultai.o \
 	$(DLL_OBJDIR)/doors.o \
 	$(DLL_OBJDIR)/effects.o \
-	$(DLL_OBJDIR)/egon.o \
 	$(DLL_OBJDIR)/explode.o \
 	$(DLL_OBJDIR)/flyingmonster.o \
 	$(DLL_OBJDIR)/func_break.o \
@@ -95,7 +88,6 @@ OBJ = \
 	$(DLL_OBJDIR)/game.o \
 	$(DLL_OBJDIR)/gamerules.o \
 	$(DLL_OBJDIR)/gargantua.o \
-	$(DLL_OBJDIR)/gauss.o \
 	$(DLL_OBJDIR)/genericmonster.o \
 	$(DLL_OBJDIR)/ggrenade.o \
 	$(DLL_OBJDIR)/globals.o \
@@ -105,13 +97,10 @@ OBJ = \
 	$(DLL_OBJDIR)/h_cine.o \
 	$(DLL_OBJDIR)/h_cycler.o \
 	$(DLL_OBJDIR)/h_export.o \
-	$(DLL_OBJDIR)/handgrenade.o \
 	$(DLL_OBJDIR)/hassassin.o \
 	$(DLL_OBJDIR)/headcrab.o \
 	$(DLL_OBJDIR)/healthkit.o \
 	$(DLL_OBJDIR)/hgrunt.o \
-	$(DLL_OBJDIR)/hornet.o \
-	$(DLL_OBJDIR)/hornetgun.o \
 	$(DLL_OBJDIR)/houndeye.o \
 	$(DLL_OBJDIR)/ichthyosaur.o \
 	$(DLL_OBJDIR)/islave.o \
@@ -123,7 +112,6 @@ OBJ = \
 	$(DLL_OBJDIR)/monsters.o \
 	$(DLL_OBJDIR)/monsterstate.o \
 	$(DLL_OBJDIR)/mortar.o \
-	$(DLL_OBJDIR)/mp5.o \
 	$(DLL_OBJDIR)/multiplay_gamerules.o \
 	$(DLL_OBJDIR)/nihilanth.o \
 	$(DLL_OBJDIR)/nodes.o \
@@ -132,36 +120,28 @@ OBJ = \
 	$(DLL_OBJDIR)/plane.o \
 	$(DLL_OBJDIR)/plats.o \
 	$(DLL_OBJDIR)/player.o \
-	$(DLL_OBJDIR)/python.o \
 	$(DLL_OBJDIR)/rat.o \
 	$(DLL_OBJDIR)/roach.o \
-	$(DLL_OBJDIR)/rpg.o \
-	$(DLL_OBJDIR)/satchel.o \
 	$(DLL_OBJDIR)/schedule.o \
 	$(DLL_OBJDIR)/scientist.o \
 	$(DLL_OBJDIR)/scripted.o \
-	$(DLL_OBJDIR)/shotgun.o \
 	$(DLL_OBJDIR)/singleplay_gamerules.o \
 	$(DLL_OBJDIR)/skill.o \
 	$(DLL_OBJDIR)/sound.o \
 	$(DLL_OBJDIR)/soundent.o \
 	$(DLL_OBJDIR)/spectator.o \
 	$(DLL_OBJDIR)/squadmonster.o \
-	$(DLL_OBJDIR)/squeakgrenade.o \
 	$(DLL_OBJDIR)/subs.o \
 	$(DLL_OBJDIR)/talkmonster.o \
 	$(DLL_OBJDIR)/teamplay_gamerules.o \
 	$(DLL_OBJDIR)/tempmonster.o \
 	$(DLL_OBJDIR)/tentacle.o \
 	$(DLL_OBJDIR)/triggers.o \
-	$(DLL_OBJDIR)/tripmine.o \
 	$(DLL_OBJDIR)/turret.o \
 	$(DLL_OBJDIR)/util.o \
 	$(DLL_OBJDIR)/weapons.o \
 	$(DLL_OBJDIR)/world.o \
 	$(DLL_OBJDIR)/xen.o \
-	$(DLL_OBJDIR)/zombie.o \
-	$(WPN_SHARED_OBJDIR)/hl_wpn_glock.o \
 	$(GAME_SHARED_OBJDIR)/voice_gamemgr.o \
 	$(PM_SHARED_OBJDIR)/pm_debug.o \
 	$(PM_SHARED_OBJDIR)/pm_math.o \
@@ -172,7 +152,6 @@ $(DLLNAME)_$(ARCH).$(SHLIBEXT) : neat $(OBJ)
 
 neat:
 	-mkdir $(DLL_OBJDIR)
-	-mkdir $(WPN_SHARED_OBJDIR)
 	-mkdir $(GAME_SHARED_OBJDIR)
 	-mkdir $(PM_SHARED_OBJDIR)
 clean:
@@ -180,7 +159,5 @@ clean:
 	-rm -f $(DLLNAME)_$(ARCH).$(SHLIBEXT)
 spotless: clean
 	-rm -r $(DLL_OBJDIR)
-	-rm -r $(WPN_SHARED_OBJDIR)
 	-rm -r $(GAME_SHARED_OBJDIR)
 	-rm -r $(PM_SHARED_OBJDIR)
-
