@@ -192,4 +192,4 @@ $(PM_SHARED_OBJ_DIR)/%.o : $(PM_SHARED_SRC_DIR)/%.cpp $(filter-out $(wildcard  $
 
 clean:
 	-rm -rf $(HLP_OBJ_DIR)
-	-rm -f client.$(SHLIBEXT)
+	-rm -f client_hlp.$(SHLIBEXT)
