@@ -73,7 +73,7 @@ if (m_iAction==1)
 {
 	int r, g, b,anim/*, x, y*/;
 	//gEngfuncs.Con_DPrintf( "%i\n",tps); // equivalent de ALERT mais coté client
-	UnpackRGB(r,g,b, RGB_YELLOWISH);
+	UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 
 
 	ScaleColors( r, g, b, 255 );
@@ -98,7 +98,7 @@ if (m_iAction==1)
 	if (tps!=0 && tps<7)
 	{
 	int r, g, b/*, x, y*/;
-	UnpackRGB(r,g,b, RGB_YELLOWISH);
+	UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 	ScaleColors( r, g, b, 255 );
 	SPR_Set ( m_SprP1, r, g, b);
 	SPR_DrawAdditive (3, ScreenWidth - 256 -100, -50, &m_prcSprite );

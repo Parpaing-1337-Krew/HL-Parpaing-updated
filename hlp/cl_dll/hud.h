@@ -20,10 +20,10 @@
 // CHud handles the message, calculation, and drawing the HUD
 //
 
-
 #define RGB_YELLOWISH 0x00FFA000 //255,160,0
 #define RGB_REDISH 0x00FF1010 //255,160,0
 #define RGB_GREENISH 0x0000A000 //0,160,0
+#define RGB_PARPAINGNISH 0x00ACB6C1 //172,182,193
 
 #ifndef _WIN32
 #define _cdecl 
@@ -168,6 +168,18 @@ private:
 
 #define FADE_TIME 100
 
+//
+//-----------------------------------------------------
+//
+class CHudMp3: public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_Mp3(const char *pszName, int iSize, void *pbuf);
+
+};
 
 //
 //-----------------------------------------------------
@@ -221,7 +233,7 @@ protected:
 	enum { 
 		MAX_STATUSTEXT_LENGTH = 128,
 		MAX_STATUSBAR_VALUES = 8,
-		MAX_STATUSBAR_LINES = 3,
+		MAX_STATUSBAR_LINES = 2,
 	};
 
 	char m_szStatusText[MAX_STATUSBAR_LINES][MAX_STATUSTEXT_LENGTH];  // a text string describing how the status bar is to be drawn
@@ -368,6 +380,169 @@ private:
 	float m_fFade;
 	int	  m_iWidth;		// width of the battery innards
 };
+
+
+//
+//-----------------------------------------------------
+//
+class CHudBarArea: public CHudBase
+{
+
+public: int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_Bar(const char *pszName, int iSize, void *pbuf);
+	int test;
+private:
+	HSPRITE		m_hSprite;
+	int			m_iFade;
+	int			m_iSens;
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudSkill: public CHudBase
+{
+
+public: int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_Skill(const char *pszName, int iSize, void *pbuf);
+	int Skill;
+private: HSPRITE m_hSprite;
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudChaos: public CHudBase
+{
+
+public: int Init( void );
+	int VidInit( void );
+	int MsgFunc_Chaos(const char *pszName, int iSize, void *pbuf);
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudAlcool: public CHudBase
+{
+
+public:
+	int Init( void );
+	int VidInit( void );
+	int MsgFunc_Alcool(const char *pszName, int iSize, void *pbuf);
+	int m_iAlcool;
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudTime: public CHudBase
+{
+public:
+
+	int Init ( void );
+	int VidInit ( void );
+	void Reset ( void );
+	int Draw (float flTime );
+	int MsgFunc_Time (const char *pszName, int iSize, void *pbuf );
+
+private:
+
+	wrect_t * m_prc_0;
+	wrect_t m_prcSprite;
+	HSPRITE m_hSprite;
+	int m_iTimeRemaining;
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudParpaing: public CHudBase
+{
+public:
+
+	int Init ( void );
+	int VidInit ( void );
+	void Reset ( void );
+	int Draw (float flTime );
+	int MsgFunc_Parpaing (const char *pszName, int iSize, void *pbuf );
+
+private:
+	int m_iAction;
+	wrect_t * m_prc_0;
+	wrect_t m_prcSprite;
+	HSPRITE m_SprP1;
+	float m_iStart;
+	int m_iTimeRemaining;
+	int m_iStatus;
+
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudBlame: public CHudBase
+{
+public:
+
+	int Init ( void );
+	int VidInit ( void );
+	void Reset ( void );
+	int Draw (float flTime );
+	int MsgFunc_Blame (const char *pszName, int iSize, void *pbuf );
+
+private:
+	int m_iAction;
+	wrect_t m_prcSprite;
+	HSPRITE m_Spr;
+	int m_iFade;
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudCarnet: public CHudBase
+{
+public:
+
+	int Init ( void );
+	int VidInit ( void );
+	void Reset ( void );
+	int Draw (float flTime );
+	int MsgFunc_Carnet (const char *pszName, int iSize, void *pbuf );
+
+private:
+	int m_iAction;
+	wrect_t m_prcSprite;
+	HSPRITE m_Spr;
+	float m_iStart;
+};
+
+
+//
+//-----------------------------------------------------
+//
+//affichage de la defusasionismage (quant on defuse quoi )
+class CHudDefuse: public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int MsgFunc_Defuse(const char *pszName, int iSize, void *pbuf);
+	int Defuse;
+	int Draw (float flTime );
+	float Time;
+};
+
 
 //
 //-----------------------------------------------------
@@ -551,7 +726,7 @@ private:
 	int							m_iConcussionEffect; 
 
 public:
-
+	float NewSens; // douanier
 	HSPRITE						m_hsprCursor;
 	float m_flTime;	   // the current client time
 	float m_fOldTime;  // the time at which the HUD was last redrawn
@@ -611,6 +786,28 @@ public:
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
 	CHudBenchmark	m_Benchmark;
+
+	CHudTime		m_Time;
+	CHudBlame		m_Blame;
+	CHudCarnet		m_Carnet;
+	CHudParpaing	m_Parpaing;
+	CHudMp3			m_Mp3;
+	CHudChaos		m_Chaos;
+	CHudAlcool		m_Alcool;
+	CHudBarArea		m_BarArea;
+	CHudSkill		m_Skill;
+	CHudDefuse      m_Defuse;
+	int Alcool;
+	int OldAlcool;
+	int Defuse;
+	float m_lTime; // tps restant (lié msg server/client -> vgui info)
+	float m_flLastmsg;
+	int m_i51;
+	int m_iRicard;
+	int m_iTeam; // team pour savoir ce ke l'on affiche dans le panel info
+	int nbmacon;
+	int nbblame;
+	char *Vguimsg;
 
 	void Init( void );
 	void VidInit( void );

@@ -57,7 +57,7 @@ return 1;
 int CHudBlame::Draw ( float flTime )
 {
 /*	int r, g, b;
-	UnpackRGB(r,g,b, RGB_YELLOWISH);
+	UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 	ScaleColors( r, g, b, m_iFade );
 
 	SPR_Set ( m_Spr, r, g, b);
@@ -128,7 +128,7 @@ int CHudCarnet::Draw ( float flTime )
 	m_iStart=flTime;
 
 	int r, g, b;
-	UnpackRGB(r,g,b, RGB_YELLOWISH);
+	UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 	ScaleColors( r, g, b, 200 );
 
 	int m_iStatus = (128 * (flTime-m_iStart) )/3;

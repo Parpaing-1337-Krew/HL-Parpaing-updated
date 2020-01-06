@@ -52,9 +52,11 @@ public:
 
 			iTeam = iTeam % iNumberOfTeamColors;
 
+			/*
 			color[0] = iTeamColors[iTeam][0];
 			color[1] = iTeamColors[iTeam][1];
 			color[2] = iTeamColors[iTeam][2];
+			 */
 		}
 	}
 
@@ -367,7 +369,18 @@ void CHud :: Init( void )
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
-	
+
+	m_Time.Init();
+	m_Parpaing.Init();
+	m_Blame.Init();
+	m_Carnet.Init();
+	m_Alcool.Init();
+	m_BarArea.Init();
+	m_Skill.Init();
+	m_Mp3.Init();
+	m_Chaos.Init();
+	m_Defuse.Init();
+
 	ServersInit();
 
 	MsgFunc_ResetHUD(0, 0, NULL );
@@ -514,6 +527,17 @@ void CHud :: VidInit( void )
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
 	GetClientVoiceMgr()->VidInit();
+
+	m_Time.VidInit();
+	m_Parpaing.VidInit();
+	m_Blame.VidInit();
+	m_Carnet.VidInit();
+	m_Alcool.VidInit();
+	m_BarArea.VidInit();
+	m_Skill.VidInit();
+	m_Mp3.VidInit();
+	m_Chaos.VidInit();
+	m_Defuse.VidInit();
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

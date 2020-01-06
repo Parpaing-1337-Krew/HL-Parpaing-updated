@@ -45,7 +45,7 @@ if (m_iPos)
 {
 
 int r, g, b, x, y; 
-UnpackRGB(r,g,b, RGB_YELLOWISH);
+UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 SPR_Set(m_hSprite, r, g, b );
 y = ScreenHeight/3 - SPR_Height(m_hSprite,0) - gHUD.m_iFontHeight;
 x = SPR_Width(m_hSprite,0)/25; //Ici on choisit a quel endroit de l'ecran on affiche le sprite, x représente l'abscisse et y l'ordonnée.

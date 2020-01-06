@@ -129,7 +129,7 @@ if (m_iMin==0 && m_iSec<31)
 		b = 0;
 		a = 200;
 } else {
-UnpackRGB(r,g,b, RGB_YELLOWISH);
+UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 }
 ScaleColors(r, g, b, a);
 x = ScreenWidth/5;

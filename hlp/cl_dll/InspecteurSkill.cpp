@@ -62,7 +62,7 @@ int i;
 for (i = 0 ; i < Skill ; i++)
 {
 int r, g, b, x, y; 
-UnpackRGB(r,g,b, RGB_YELLOWISH);
+UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 SPR_Set(m_hSprite, r, g, b );
 
 x = ScreenWidth /6 + i * SpacerX ;

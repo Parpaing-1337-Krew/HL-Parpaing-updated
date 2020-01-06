@@ -32,7 +32,7 @@ int CHudBarArea::Draw(float fTime)
 
 int r, g, b, x, y; 
 x=50;
-UnpackRGB(r,g,b, RGB_YELLOWISH);
+UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 
 if (m_iSens==1)
 m_iFade+=3;
