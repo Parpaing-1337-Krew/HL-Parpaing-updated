@@ -1665,6 +1665,133 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	}
 #endif
 */
+
+/*
+Effet de l'alcool côté client
+L'effet est pas mal et là on a pas a avoir peur du lag
+je fais le gros du code je laisserais a madfab le soin d'ajuster l'effet selon le degré d'alcool
+douanier007
+(pour ceux qui se poseraient la question, oui je l'ai fais tout seul :p )
+(fab) un tout petit modif par ma personne (mais vraiment pas grand chose)
+(BLP : J'allais pas vous laisser vous amuser sans moi dans cette section alcoolisée ;p, alors je participe aussi
+J'ai amélioré la mise en page du code. Muhahaha, encore moins que Fab, lololol.
+douanier : Salop !
+*/
+	if (gHUD.Alcool > 0 )
+	{
+		int k = gHUD.Alcool;
+		gHUD.OldAlcool = k;
+		int i = 0;
+		if (k> 100)
+			k = 100;
+		
+		if (k >= 40)
+		{
+			if (gHUD.m_iFOV < 86 || gHUD.m_iFOV > 94)
+			{
+				//fovg
+				switch (gEngfuncs.pfnRandomLong( 0, 5 ))
+				{
+					case 1:gHUD.m_iFOV -= gEngfuncs.pfnRandomLong(1,(int)k/30);break;
+					case 2:gHUD.m_iFOV += gEngfuncs.pfnRandomLong(1,(int)k/30);break;
+				}
+			}
+			else if (gHUD.m_iFOV > 88)
+				gHUD.m_iFOV -= 1;
+			else if (gHUD.m_iFOV <92)
+				gHUD.m_iFOV += 1;
+		}
+//sensibilité de la souris :) // (fab) ca c'est vraiment salaud :)
+		if (k > 50)
+		{
+			if (gEngfuncs.pfnRandomLong( 0, 10 ) == 10)
+			{
+				int b = (gEngfuncs.pfnRandomLong( 1, 20 ));
+				if (b <= 6)
+				{
+					gHUD.NewSens = 0.5;
+				}
+				else if (b <= 13)
+				{
+					gHUD.NewSens = 10;
+				}
+				else
+				{
+					gHUD.NewSens = 20;
+				}
+			}
+		}
+		//fade 
+		screenfade_t effet;
+		gEngfuncs.pfnGetScreenFade( &effet );
+		effet.fader = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadeg = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadeb = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadealpha = k *1.28; //50% max
+		effet.fadeFlags =  FFADE_STAYOUT | FFADE_OUT;
+		gEngfuncs.pfnSetScreenFade( &effet );
+		
+		//viewangle
+		if (k >= 20 && k<50)
+		{
+			switch (gEngfuncs.pfnRandomLong( 0, 3 ))
+			{
+				case 2: i = 1;break;
+				default : i=0;break;
+			}
+		}
+		else if (k >= 50 && k<75)
+		{
+			switch (gEngfuncs.pfnRandomLong( 0, 3 ))
+			{
+				case 0 : i=1;break;
+				case 1 : i=2;break;
+				default : i = 0;break;
+			}
+			
+		}
+		else if (k >= 75)
+		{
+			switch (gEngfuncs.pfnRandomLong( 0, 3 ))
+			{
+				case 0 : i = 2;break;
+				case 1 : i = 2;break;
+				case 2 : i = 1;break;
+				default : i = 0;break;
+			}
+		}
+		else {i=0;} //pas d'effet
+		
+		pparams->cl_viewangles[0] += gEngfuncs.pfnRandomLong( -5*i, 5*i );
+		pparams->cl_viewangles[1] += gEngfuncs.pfnRandomLong( -i, i );
+		
+		if (pparams->cl_viewangles[2] <= -20)
+		{
+			pparams->cl_viewangles[2] += gEngfuncs.pfnRandomLong(0,2);
+		}
+		else if (pparams->cl_viewangles[2] >= 20)
+		{
+			pparams->cl_viewangles[2] -= gEngfuncs.pfnRandomLong(0,2);
+		}
+		else
+		{
+			pparams->cl_viewangles[2] += gEngfuncs.pfnRandomLong( -i, i );
+		}
+	}
+	else if (gHUD.OldAlcool != 0 && gHUD.Alcool == 0)
+	{
+		gHUD.OldAlcool = 0;
+		
+		screenfade_t effet;
+		gEngfuncs.pfnGetScreenFade( &effet );
+		effet.fader = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadeg = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadeb = gEngfuncs.pfnRandomLong( 110, 256 );
+		effet.fadealpha = 0; //reset 
+		effet.fadeFlags =  FFADE_STAYOUT | FFADE_OUT;
+		gEngfuncs.pfnSetScreenFade( &effet );
+		pparams->cl_viewangles[2]=0;// (fab) on remet la vue droite kan même :]
+	}
 }
 
 /*

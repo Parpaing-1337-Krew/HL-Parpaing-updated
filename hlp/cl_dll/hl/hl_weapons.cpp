@@ -51,6 +51,7 @@ int   g_irunninggausspred = 0;
 
 vec3_t previousorigin;
 
+#ifndef PARPAING_DLL
 // HLDM Weapon placeholder entities.
 CGlock g_Glock;
 CCrowbar g_Crowbar;
@@ -66,7 +67,9 @@ CHandGrenade g_HandGren;
 CSatchel g_Satchel;
 CTripmine g_Tripmine;
 CSqueak g_Snark;
-
+#else
+CCrowbar g_Crowbar;
+#endif
 
 /*
 ======================
@@ -604,6 +607,7 @@ void HUD_InitClientWeapons( void )
 	// Allocate a slot for the local player
 	HUD_PrepEntity( &player		, NULL );
 
+#ifndef PARPAING_DLL
 	// Allocate slot(s) for each weapon that we are going to be predicting
 	HUD_PrepEntity( &g_Glock	, &player );
 	HUD_PrepEntity( &g_Crowbar	, &player );
@@ -619,6 +623,9 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Satchel	, &player );
 	HUD_PrepEntity( &g_Tripmine	, &player );
 	HUD_PrepEntity( &g_Snark	, &player );
+#else
+	HUD_PrepEntity( &g_Crowbar	, &player );
+#endif
 }
 
 /*
@@ -687,7 +694,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_CROWBAR:
 			pWeapon = &g_Crowbar;
 			break;
-		
+#ifndef PARPAING_DLL
 		case WEAPON_GLOCK:
 			pWeapon = &g_Glock;
 			break;
@@ -739,6 +746,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_SNARK:
 			pWeapon = &g_Snark;
 			break;
+#endif
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it

@@ -53,6 +53,16 @@ float g_ColorGrey[3]	= { 0.8, 0.8, 0.8 };
 
 float *GetClientColor( int clientIndex )
 {
+	if ( !strcmp( g_PlayerExtraInfo[clientIndex].teamname, "Macon[51]" ) )
+		return g_ColorBlue;
+	if ( !strcmp( g_PlayerExtraInfo[clientIndex].teamname, "Macon[Ricard]" ) )
+		return g_ColorRed;
+	if ( !strcmp( g_PlayerExtraInfo[clientIndex].teamname, "Inspecteur" ) )
+		return g_ColorGreen;
+	if ( !strcmp( g_PlayerExtraInfo[clientIndex].teamname, "Spectacteur" ) )
+		return g_ColorYellow;
+
+	/*
 	switch ( g_PlayerExtraInfo[clientIndex].teamnumber )
 	{
 	case 1:	return g_ColorBlue;
@@ -63,6 +73,7 @@ float *GetClientColor( int clientIndex )
 
 		default	: return g_ColorGrey;
 	}
+	*/
 
 	return NULL;
 }

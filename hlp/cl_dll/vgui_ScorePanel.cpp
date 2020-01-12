@@ -12,7 +12,11 @@
 //
 //-----------------------------------------------------------------------------
 // $Log: $
+// Revision 1.2  2003/06/03 14:12:25  madfab
+// up client 03 06 2003
 //
+// Revision 1.1  2003/04/28 20:45:51  madfab
+// *** empty log message ***
 // $NoKeywords: $
 //=============================================================================
 
@@ -260,6 +264,8 @@ bool HACK_GetPlayerUniqueID( int iPlayer, char playerID[16] )
 //-----------------------------------------------------------------------------
 void ScorePanel::Update()
 {
+	//gEngfuncs.Con_DPrintf( "@@@@ UPDATE SCOREPANEL @@@\n" );
+	
 	int i;
 
 	// Set the title
@@ -333,6 +339,7 @@ void ScorePanel::SortTeams()
 		for ( j = 1; j <= m_iNumTeams; j++ )
 		{
 			if ( !stricmp( g_PlayerExtraInfo[i].teamname, g_TeamInfo[j].name ) )
+				//gEngfuncs.Con_DPrintf( "# SortTeams : comp de nom de team #\n");
 				break;
 		}
 		if ( j > m_iNumTeams )  // player is not in a team, skip to the next guy
@@ -406,6 +413,20 @@ void ScorePanel::SortTeams()
 
 	// Add all the players who aren't in a team yet into spectators
 	SortPlayers( TEAM_SPECTATORS, NULL );
+	
+	/*
+	for ( i = 1; i < MAX_PLAYERS; i++ )
+	{
+			if ( !strcmp( g_TeamInfo[i].name, "Macon[51]" ) )
+			gEngfuncs.Con_DPrintf( "# %i : 51 #\n",i);
+			if ( !strcmp( g_TeamInfo[i].name, "Macon[Ricard]" ) )
+			gEngfuncs.Con_DPrintf( "# %i : Ricard #\n",i);
+			if ( !strcmp( g_TeamInfo[i].name, "Inspecteur" ) )
+			gEngfuncs.Con_DPrintf( "# %i : Inspecteur #\n",i);
+			if ( !strcmp( g_TeamInfo[i].name, "Spectacteur" ) )
+			gEngfuncs.Con_DPrintf( "# %i : Spectateur #\n",i);
+	}
+	 */
 }
 
 //-----------------------------------------------------------------------------
@@ -471,6 +492,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 //-----------------------------------------------------------------------------
 void ScorePanel::RebuildTeams()
 {
+	//gEngfuncs.Con_DPrintf( "## RebuildTeams ##\n" );
 	// clear out player counts from teams
 	int i;
 	for ( i = 1; i <= m_iNumTeams; i++ )
@@ -484,44 +506,77 @@ void ScorePanel::RebuildTeams()
 	for ( i = 1; i < MAX_PLAYERS; i++ )
 	{
 		if ( g_PlayerInfoList[i].name == NULL )
+		{
+			//gEngfuncs.Con_DPrintf( "# g_PlayerInfoList = NULL #\n" );
 			continue;
-
+		}
+		
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
+		{
+			//gEngfuncs.Con_DPrintf( "# g_PlayerExtraInfo.teamname = 0 #\n" );
 			continue; // skip over players who are not in a team
-
+		}
+		
 		// is this player in an existing team?
 		int j;
 		for ( j = 1; j <= m_iNumTeams; j++ )
 		{
 			if ( g_TeamInfo[j].name[0] == '\0' )
+			{
+				//gEngfuncs.Con_DPrintf( "# g_TeamInfo[%i] = 0 #\n",i );
 				break;
-
+			}
+			
 			if ( !stricmp( g_PlayerExtraInfo[i].teamname, g_TeamInfo[j].name ) )
+			{
+				//gEngfuncs.Con_DPrintf( "# g_PlayerExtraInfo[%d].teamname conp a g_TeamInfo[%d].name  #\n",i,i );
 				break;
+			}
 		}
 
 		if ( j > m_iNumTeams )
 		{ // they aren't in a listed team, so make a new one
 			// search through for an empty team slot
+			//gEngfuncs.Con_DPrintf( "# j > m_iNumTeams #\n");
 			for ( int j = 1; j <= m_iNumTeams; j++ )
 			{
 				if ( g_TeamInfo[j].name[0] == '\0' )
+				{
+					//gEngfuncs.Con_DPrintf( "# g_TeamInfo[%d].name[0] == \0 #\n",j);
 					break;
+				}
 			}
 			m_iNumTeams = V_max( j, m_iNumTeams );
 
 			strncpy( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname, MAX_TEAM_NAME );
+			//gEngfuncs.Con_DPrintf( "# strncpy g_TeamInfo[%d].name source : g_PlayerExtraInfo[%d].teamname #\n",j,j);
+			
+			/*
+			if ( !strcmp( g_TeamInfo[j].name, "Macon[51]" ) )
+				gEngfuncs.Con_DPrintf( "# %i : 51 #\n",j);
+			if ( !strcmp( g_TeamInfo[j].name, "Macon[Ricard]" ) )
+				gEngfuncs.Con_DPrintf( "# %i : Ricard #\n",j);
+			if ( !strcmp( g_TeamInfo[j].name, "Inspecteur" ) )
+				gEngfuncs.Con_DPrintf( "# %i : Inspecteur #\n",j);
+			if ( !strcmp( g_TeamInfo[j].name, "Spectacteur" ) )
+				gEngfuncs.Con_DPrintf( "# %i : Spectateur #\n",j);
+			*/
+			
 			g_TeamInfo[j].players = 0;
 		}
 
 		g_TeamInfo[j].players++;
+		//gEngfuncs.Con_DPrintf( "# g_TeamInfo[%d].players++ #\n",j);
 	}
 
 	// clear out any empty teams
 	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		if ( g_TeamInfo[i].players < 1 )
-			memset( &g_TeamInfo[i], 0, sizeof(team_info_t) );
+		{
+			//gEngfuncs.Con_DPrintf( "# g_TeamInfo[%d].players < 1 #\n",i);
+			memset(&g_TeamInfo[i], 0, sizeof(team_info_t));
+		}
 	}
 
 	// Update the scoreboard
@@ -599,6 +654,8 @@ void ScorePanel::FillGrid()
 			char sz[128];
 			hud_player_info_t *pl_info = NULL;
 			team_info_t *team_info = NULL;
+			// Get the team's data
+			team_info = &g_TeamInfo[ m_iSortedRows[row] ];
 
 			if (m_iIsATeam[row] == TEAM_BLANK)
 			{
@@ -607,14 +664,17 @@ void ScorePanel::FillGrid()
 			}
 			else if ( m_iIsATeam[row] == TEAM_YES )
 			{
-				// Get the team's data
-				team_info = &g_TeamInfo[ m_iSortedRows[row] ];
-
 				// team color text for team names
+				/*
 				pLabel->setFgColor(	iTeamColors[team_info->teamnumber % iNumberOfTeamColors][0],
 									iTeamColors[team_info->teamnumber % iNumberOfTeamColors][1],
 									iTeamColors[team_info->teamnumber % iNumberOfTeamColors][2],
 									0 );
+				*/
+				pLabel->setFgColor(GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,0),
+				                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,1),
+				                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,2),
+				                   0 );
 
 				// different height for team header rows
 				rowheight = 20;
@@ -625,6 +685,7 @@ void ScorePanel::FillGrid()
 				pLabel->setSize(pLabel->getWide(), rowheight);
 				pLabel->setFont(tfont);
 
+				/*
 				pGridRow->SetRowUnderline(	0,
 											true,
 											YRES(3),
@@ -632,6 +693,14 @@ void ScorePanel::FillGrid()
 											iTeamColors[team_info->teamnumber % iNumberOfTeamColors][1],
 											iTeamColors[team_info->teamnumber % iNumberOfTeamColors][2],
 											0 );
+				*/
+				pGridRow->SetRowUnderline(0,
+				                          true,
+				                          YRES(3),
+				                          GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,0),
+				                          GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,1),
+				                          GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,2),
+				                          0 );
 			}
 			else if ( m_iIsATeam[row] == TEAM_SPECTATORS )
 			{
@@ -652,10 +721,16 @@ void ScorePanel::FillGrid()
 			else
 			{
 				// team color text for player names
+				/*
 				pLabel->setFgColor(	iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][0],
 									iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][1],
 									iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][2],
 									0 );
+				*/
+				pLabel->setFgColor(GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,0),
+				                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,1),
+				                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,2),
+				                   0 );
 
 				// Get the player's data
 				pl_info = &g_PlayerInfoList[ m_iSortedRows[row] ];
@@ -665,10 +740,16 @@ void ScorePanel::FillGrid()
 				{
 					// Highlight this player
 					pLabel->setFgColor(Scheme::sc_white);
+					/*
 					pLabel->setBgColor(	iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][0],
 										iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][1],
 										iTeamColors[ g_PlayerExtraInfo[ m_iSortedRows[row] ].teamnumber % iNumberOfTeamColors ][2],
 										196 );
+					*/
+					pLabel->setBgColor(GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,0),
+					                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,1),
+					                   GetTeamColor(g_PlayerExtraInfo[m_iSortedRows[row]].teamname,2),
+					                   196 );
 				}
 				else if ( m_iSortedRows[row] == m_iLastKilledBy && m_fLastKillTime && m_fLastKillTime > gHUD.m_flTime )
 				{
@@ -702,11 +783,36 @@ void ScorePanel::FillGrid()
 				case COLUMN_NAME:
 					if ( m_iIsATeam[row] == TEAM_SPECTATORS )
 					{
-						sprintf( sz2, CHudTextMessage::BufferedLocaliseTextString( "#Spectators" ) );
+						//sprintf( sz2, CHudTextMessage::BufferedLocaliseTextString( "#Spectators" ) );
+						sprintf( sz2, "Spectators");
 					}
 					else
 					{
-						sprintf( sz2, gViewPort->GetTeamName(team_info->teamnumber) );
+						//sprintf( sz2,gViewPort->GetTeamName(team_info->teamnumber) );
+						//sprintf( sz2,g_PlayerExtraInfo[row].teamname );
+						
+						if ( !strcmp( team_info->name, "Macon[51]" ) )
+						{
+							sprintf( sz2,team_info->name );
+							//gEngfuncs.Con_DPrintf( "ZZ %i : 51 ZZ\n",team_info->teamnumber);
+						}
+						else if ( !strcmp( team_info->name, "Macon[Ricard]" ) )
+						{
+							sprintf( sz2,team_info->name );
+							//gEngfuncs.Con_DPrintf( "ZZ %i : Ricard ZZ\n",team_info->teamnumber);
+						}
+						else if ( !strcmp( team_info->name, "Inspecteur" ) )
+						{
+							sprintf( sz2,team_info->name );
+							//gEngfuncs.Con_DPrintf( "ZZ %i : Inspecteur ZZ\n",team_info->teamnumber);
+						}
+						else if ( !strcmp( team_info->name, "Spectacteur" ) )
+						{
+							sprintf( sz2, "Spectators" );
+							//gEngfuncs.Con_DPrintf( "ZZ %i : Spectateur ZZ\n",team_info->teamnumber);
+						} else {
+							sprintf( sz2, "Spectators" );
+						}
 					}
 
 					strcpy(sz, sz2);

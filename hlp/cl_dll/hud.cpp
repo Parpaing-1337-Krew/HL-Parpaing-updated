@@ -367,9 +367,9 @@ void CHud :: Init( void )
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
-
+	
 	m_Menu.Init();
-
+	
 	m_Time.Init();
 	m_Parpaing.Init();
 	m_Blame.Init();
@@ -380,9 +380,9 @@ void CHud :: Init( void )
 	m_Mp3.Init();
 	m_Chaos.Init();
 	m_Defuse.Init();
-
+	
 	ServersInit();
-
+	
 	MsgFunc_ResetHUD(0, 0, NULL );
 }
 
@@ -646,6 +646,8 @@ float HUD_GetFOV( void )
 
 int CHud::MsgFunc_SetFOV(const char *pszName,  int iSize, void *pbuf)
 {
+	return 1;
+	
 	BEGIN_READ( pbuf, iSize );
 
 	int newfov = READ_BYTE();
@@ -674,10 +676,14 @@ int CHud::MsgFunc_SetFOV(const char *pszName,  int iSize, void *pbuf)
 		// reset to saved sensitivity
 		m_flMouseSensitivity = 0;
 	}
-	else
+	else if (Alcool < 0)
 	{  
 		// set a new sensitivity that is proportional to the change from the FOV default
 		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+	}
+	else if (Alcool >= 400)
+	{
+		m_flMouseSensitivity = NewSens;
 	}
 
 	return 1;

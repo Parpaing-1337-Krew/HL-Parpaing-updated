@@ -154,21 +154,44 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 	r = 255 - g;
 	b = 0;
 #else
-	if (m_iHealth > 25)
+	//if (m_iHealth > 25)
+	if (m_iHealth > 30)
 	{
 		UnpackRGB(r,g,b, RGB_PARPAINGNISH);
 	}
 	else
 	{
-		r = 250;
+		//r = 250;
+		r = 96;
 		g = 0;
 		b = 0;
 	}
 #endif 
 }
 
+#define MOTD_WINDOW_X       XRES(500)
+#define MOTD_HBAR_X         XRES(540)
+#define MOTD_HBAR_W         XRES(95)
+#define MOTD_WINDOW_WIDTH   XRES(140)
+#define MOTD_WINDOW_Y       YRES(0)
+#define MOTD_WINDOW_SIZE_X  XRES(640)
+#define MOTD_WINDOW_SIZE_Y  YRES(50)
+
 int CHudHealth::Draw(float flTime)
 {
+	FillRGBA(MOTD_HBAR_X, 9, MOTD_HBAR_W, 12, 255, 255, 255, 20);
+	
+	int Ahealth;
+	Ahealth = (MOTD_HBAR_W /100) * m_iHealth;
+	
+	if (m_iHealth<=20)
+		FillRGBA(MOTD_HBAR_X, 9, Ahealth, 12, 254, 84, 44, 255);
+	else
+		FillRGBA(MOTD_HBAR_X, 9, Ahealth, 12, 255, 255, 255, 100);
+	
+	return 1; // (fab) affichage en VGUI
+	//douanier007
+
 	int r, g, b;
 	int a = 0, x, y;
 	int HealthWidth;

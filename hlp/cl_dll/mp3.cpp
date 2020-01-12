@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "fmod.h"
 #include "fmod_errors.h"
-#include "loaddll.h"
+#include "extdll.h"
 
 cvar_t	*cl_mp3;
 

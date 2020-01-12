@@ -91,7 +91,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 
 #if !defined( _TFC )
 	//Probably not a good place to put this.
-	pBeam = pBeam2 = NULL;
+	//pBeam = pBeam2 = NULL;
 #endif
 }
 

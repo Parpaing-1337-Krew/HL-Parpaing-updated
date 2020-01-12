@@ -12,7 +12,11 @@
 //
 //-----------------------------------------------------------------------------
 // $Log: $
+// Revision 1.2  2003/06/03 14:12:36  madfab
+// up client 03 06 2003
 //
+// Revision 1.1  2003/04/28 20:46:02  madfab
+// *** empty log message ***
 // $NoKeywords: $
 //=============================================================================
 #include<VGUI_Cursor.h>
@@ -55,6 +59,8 @@
 #include "vgui_ScorePanel.h"
 #include "vgui_SpectatorPanel.h"
 
+#include "vgui_MOTD.h"
+
 #include "shake.h"
 #include "screenfade.h"
 
@@ -93,6 +99,24 @@ int iTeamColors[5][3] =
 	{ 225, 205, 45 },	// Yellow
 	{ 145, 215, 140 },	// Green
 };
+
+int GetTeamColor (char *name,int col)
+{
+	//gEngfuncs.Con_DPrintf( "%s[%i]\n",name,col ); // equivalent de ALERT mais coté client
+	
+	int iTrueTeam;
+	iTrueTeam = 0;
+	if ( !strcmp( name, "Macon[51]" ) )
+		iTrueTeam=1;
+	if ( !strcmp( name, "Macon[Ricard]" ) )
+		iTrueTeam=2;
+	if ( !strcmp( name, "Inspecteur" ) )
+		iTrueTeam=4;
+	if ( !strcmp( name, "Spectacteur" ) )
+		iTrueTeam=3;
+	
+	return iTeamColors[iTrueTeam][col];
+}
 
 
 // Used for Class specific buttons
@@ -548,6 +572,8 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pSpectatorPanel = NULL;
 	m_pCurrentMenu = NULL;
 	m_pCurrentCommandMenu = NULL;
+	
+	m_pMapMenu	= NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -606,6 +632,8 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateClassMenu();
 	CreateSpectatorMenu();
 	CreateScoreBoard();
+	CreateMOTDMenu();
+	CreateMapMenu();
 	// Init command menus
 	m_iNumMenus = 0;
 	m_iCurrentTeamNumber = m_iUser1 = m_iUser2 = m_iUser3 = 0;
@@ -647,6 +675,12 @@ void TeamFortressViewport::Initialize( void )
 	{
 		m_pClassMenu->Initialize();
 	}
+	if (m_pMapMenu)
+	{
+		m_pMapMenu->Initialize();
+		ShowMapMenu();
+		m_pMapMenu->setVisible(true);
+	}
 	if (m_pScoreBoard)
 	{
 		m_pScoreBoard->Initialize();
@@ -667,6 +701,7 @@ void TeamFortressViewport::Initialize( void )
 	m_iRandomPC = false;
 	m_flScoreBoardLastUpdated = 0;
 	m_flSpectatorPanelLastUpdated = 0;
+	m_flMapMenuLastUpdated = 0;
 
 	// reset player info
 	g_iPlayerClass = 0;
@@ -1674,6 +1709,13 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 }
 
 //======================================================================
+void TeamFortressViewport::CreateMOTDMenu(void)
+{
+	m_pMOTD = new CMessageWindowPanel( "", "tes", 0, 0, MOTD_WINDOW_X, MOTD_WINDOW_Y, MOTD_WINDOW_SIZE_X, MOTD_WINDOW_SIZE_Y);
+	m_pMOTD->setParent(this);
+	m_pMOTD->setVisible(false);
+}
+
 void TeamFortressViewport::CreateScoreBoard( void )
 {
 	int xdent = SBOARD_INDENT_X, ydent = SBOARD_INDENT_Y;
@@ -1891,7 +1933,8 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 		break;
 
 	case MENU_INTRO:
-		pNewMenu = CreateTextWindow( SHOW_MOTD );
+		//pNewMenu = CreateTextWindow( SHOW_MOTD );
+		pNewMenu = ShowMOTDMenu();
 		break;
 
 	case MENU_CLASSHELP:
@@ -1903,6 +1946,11 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 		break;
 	case MENU_CLASS:
 		pNewMenu = ShowClassMenu();
+		break;
+		
+	case MENU_MAPMENU:
+		//m_pMapMenu->Close();
+		ShowMapMenu();
 		break;
 
 	default:
@@ -1922,6 +1970,13 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 	// See if another menu is visible, and if so, cache this one for display once the other one's finished
 	if (m_pCurrentMenu)
 	{
+		if (m_pCurrentMenu->GetMenuID() == MENU_INTRO)
+		{
+			m_pCurrentMenu = pNewMenu;
+			m_pCurrentMenu->Open();
+			UpdateCursorState();
+			
+		} else {
 		if ( m_pCurrentMenu->GetMenuID() == MENU_CLASS && iMenu == MENU_TEAM )
 		{
 			CMenuPanel *temp = m_pCurrentMenu;
@@ -1934,6 +1989,8 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 		else
 		{
 			m_pCurrentMenu->SetNextMenu( pNewMenu );
+			UpdateCursorState();
+		}
 		}
 	}
 	else
@@ -1949,6 +2006,7 @@ void TeamFortressViewport::HideVGUIMenu()
 {
 	while (m_pCurrentMenu)
 	{
+		if (m_pCurrentMenu->GetMenuID() != MENU_CLASS)
 		HideTopMenu();
 	}
 }
@@ -1959,6 +2017,7 @@ void TeamFortressViewport::HideTopMenu()
 	if (m_pCurrentMenu)
 	{
 		// Close the top one
+		if (m_pCurrentMenu->GetMenuID() != MENU_CLASS)
 		m_pCurrentMenu->Close();
 
 		// Bring up the next one
@@ -1980,6 +2039,11 @@ bool TeamFortressViewport::AllowedToPrintText( void )
 	}
 
 	return TRUE;
+}
+
+CMenuPanel* TeamFortressViewport::ShowMOTDMenu(void)
+{
+	return m_pTeamMenu;
 }
 
 //======================================================================================
@@ -2027,6 +2091,28 @@ void TeamFortressViewport::CreateClassMenu()
 }
 
 //======================================================================================
+// MAP MENU
+//======================================================================================
+// Show the FirstMenu
+void TeamFortressViewport::ShowMapMenu( void )
+{
+	
+	if (m_pMapMenu)
+	{
+		m_pMapMenu->Open();
+		m_pMapMenu->setVisible(true);
+	}
+	
+}
+
+void TeamFortressViewport::CreateMapMenu()
+{
+	m_pMapMenu = new CMapMenuPanel(255,255,0,0,ScreenWidth, ScreenHeight);
+	m_pMapMenu->setParent(this);
+	m_pMapMenu->setVisible(true);
+}
+
+//======================================================================================
 //======================================================================================
 // SPECTATOR MENU
 //======================================================================================
@@ -2053,6 +2139,10 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 		m_pClassMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();
+	if (m_pMapMenu)
+		m_pMapMenu->Update();
+	
+	//gEngfuncs.Con_DPrintf( "%f\n",m_flMapMenuLastUpdated  );
 }
 
 void TeamFortressViewport::UpdateCursorState()
@@ -2113,6 +2203,7 @@ void TeamFortressViewport::paintBackground()
 		getApp()->getCursorPos(x, y);
 		m_pScoreBoard->cursorMoved(x, y, m_pScoreBoard);
 	}
+	
 
 	// See if the command menu is visible and needs recalculating due to some external change
 	if ( g_iTeamNumber != m_iCurrentTeamNumber )
@@ -2146,6 +2237,16 @@ void TeamFortressViewport::paintBackground()
 	{
 		m_pScoreBoard->Update();
 		m_flScoreBoardLastUpdated = gHUD.m_flTime + 0.5;
+	}
+	
+	//gEngfuncs.Con_DPrintf( "%f = %f\n",m_flMapMenuLastUpdated,gHUD.m_flTime  ); // equivalent de ALERT mais coté client
+	if (gHUD.m_flTime<m_flMapMenuLastUpdated+1.0) //(fab) HACK 
+		m_flMapMenuLastUpdated=0;
+	
+	if (/*m_pMapMenu->isVisible() && */(m_flMapMenuLastUpdated< gHUD.m_flTime) )
+	{
+		m_pMapMenu->Update();
+		m_flMapMenuLastUpdated = gHUD.m_flTime + 0.5; // we want this to update quick
 	}
 
 	int extents[4];
@@ -2242,7 +2343,8 @@ int	TeamFortressViewport::KeyInput( int down, int keynum, const char *pszCurrent
 		// Grab enter keys to close TextWindows
 		if ( down && (keynum == K_ENTER || keynum == K_KP_ENTER || keynum == K_SPACE || keynum == K_ESCAPE) )
 		{
-			if ( iMenuID == MENU_MAPBRIEFING || iMenuID == MENU_INTRO || iMenuID == MENU_CLASSHELP )
+			//if ( iMenuID == MENU_MAPBRIEFING || iMenuID == MENU_INTRO || iMenuID == MENU_CLASSHELP )
+			if ( iMenuID == MENU_MAPBRIEFING || iMenuID == MENU_CLASSHELP )
 			{
 				HideTopMenu();
 				return 0;
@@ -2457,6 +2559,26 @@ int TeamFortressViewport::MsgFunc_ScoreInfo( const char *pszName, int iSize, voi
 	return 1;
 }
 
+/*
+int TeamFortressViewport::MsgFunc_Time( const char *pszName, int iSize, void *pbuf )
+{
+	int buff;
+	BEGIN_READ( pbuf, iSize );
+	buff = READ_SHORT();
+
+	if (buff==1)
+	gHUD.m_lTime = READ_COORD();
+
+	if (buff==2)
+	{
+	gHUD.m_i51		= READ_BYTE();
+	gHUD.m_iRicard = READ_BYTE();
+	}
+
+	return 1;
+}
+*/
+
 // Message handler for TeamScore message
 // accepts three values:
 //		string: team name
@@ -2493,16 +2615,30 @@ int TeamFortressViewport::MsgFunc_TeamScore( const char *pszName, int iSize, voi
 //		string: client team name
 int TeamFortressViewport::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf )
 {
+	//gEngfuncs.Con_DPrintf( "## MSG teamInfo ##\n" );	
 	if (!m_pScoreBoard)
 		return 1;
 
 	BEGIN_READ( pbuf, iSize );
 	short cl = READ_BYTE();
 	
+	int ze;
+	ze = (int)cl;
+	
 	if ( cl > 0 && cl <= MAX_PLAYERS )
 	{  
 		// set the players team
 		strncpy( g_PlayerExtraInfo[cl].teamname, READ_STRING(), MAX_TEAM_NAME );
+		/*
+		if ( !strcmp( g_PlayerExtraInfo[cl].teamname, "Macon[51]" ) )
+		gEngfuncs.Con_DPrintf( "## %i : 51 ##\n",ze);
+		if ( !strcmp( g_PlayerExtraInfo[cl].teamname, "Macon[Ricard]" ) )
+		gEngfuncs.Con_DPrintf( "## %i : Ricard ##\n",ze);
+		if ( !strcmp( g_PlayerExtraInfo[cl].teamname, "Inspecteur" ) )
+		gEngfuncs.Con_DPrintf( "## %i : Inspecteur ##\n",ze);
+		if ( !strcmp( g_PlayerExtraInfo[cl].teamname, "Spectacteur" ) )
+		gEngfuncs.Con_DPrintf( "## %i : Spectateur ##\n",ze);
+		*/
 	}
 
 	// rebuild the list of teams

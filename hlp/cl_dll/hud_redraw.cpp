@@ -55,11 +55,11 @@ void CHud::Think(void)
 	}
 
 	newfov = HUD_GetFOV();
-	if ( newfov == 0 )
+	if ( newfov == 0 && Alcool == 0 )
 	{
 		m_iFOV = default_fov->value;
 	}
-	else
+	else if (Alcool == 0)
 	{
 		m_iFOV = newfov;
 	}
@@ -72,10 +72,14 @@ void CHud::Think(void)
 		// reset to saved sensitivity
 		m_flMouseSensitivity = 0;
 	}
-	else
+	else if (Alcool < 50)
 	{  
 		// set a new sensitivity that is proportional to the change from the FOV default
 		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+	}
+	else if (Alcool >= 50)
+	{
+		m_flMouseSensitivity = NewSens;
 	}
 
 	// think about default fov

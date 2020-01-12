@@ -40,6 +40,7 @@
 #define MENU_CLASSHELP2 			7
 #define MENU_REPEATHELP 			8
 #define MENU_SPECHELP				9
+#define MENU_MAPMENU				30
 #endif
 using namespace vgui;
 
@@ -59,6 +60,10 @@ class CClassMenuPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
+class CMapMenuPanel;
+class CSpecMenuPanel;
+class CMessageWindowPanel;
+
 char* GetVGUITGAName(const char *pszName);
 BitmapTGA *LoadTGAForRes(const char* pImageName);
 void ScaleColors( int &r, int &g, int &b, int a );
@@ -68,6 +73,7 @@ extern char *sLocalisedClasses[];
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
 extern TeamFortressViewport *gViewPort;
+int GetTeamColor (char *name,int col);
 
 
 // Command Menu positions 
@@ -500,12 +506,14 @@ private:
 	float		 m_flMenuOpenTime;
 	float		 m_flScoreBoardLastUpdated;
 	float		 m_flSpectatorPanelLastUpdated;
+	float		 m_flMapMenuLastUpdated;
 	int			 m_iNumMenus;
 	int			 m_iCurrentTeamNumber;
 	int			 m_iCurrentPlayerClass;
 	int			 m_iUser1;
 	int			 m_iUser2;
 	int			 m_iUser3;
+	long		 time;
 
 	// VGUI Menus
 	void		 CreateTeamMenu( void );
@@ -513,6 +521,13 @@ private:
 	void		 CreateClassMenu( void );
 	CMenuPanel*	 ShowClassMenu( void );
 	void		 CreateSpectatorMenu( void );
+	
+	void		 CreateMapMenu( void );
+	void		 ShowMapMenu( void );
+	
+	void		 CreateMOTDMenu( void );
+	CMenuPanel*	 ShowMOTDMenu( void );
+	
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -613,6 +628,7 @@ public:
 	int MsgFunc_RandomPC( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_ServerName( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbuf );
+	//int MsgFunc_Time( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_TeamScore( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Spectator( const char *pszName, int iSize, void *pbuf );
@@ -624,6 +640,7 @@ public:
 	bool SlotInput( int iSlot );
 
 	virtual void paintBackground();
+	//virtual void UpdateTime();
 
 	CSchemeManager *GetSchemeManager( void ) { return &m_SchemeManager; }
 	ScorePanel *GetScoreBoard( void ) { return m_pScoreBoard; }
@@ -641,6 +658,8 @@ public:
 	CClassMenuPanel	*m_pClassMenu;
 	ScorePanel		*m_pScoreBoard;
 	SpectatorPanel *		m_pSpectatorPanel;
+	CMapMenuPanel			*m_pMapMenu;
+	CMessageWindowPanel		*m_pMOTD;
 	char			m_szServerName[ MAX_SERVERNAME_LENGTH ];
 };
 
@@ -1721,8 +1740,10 @@ public:
 	bool				m_bUpdatedMapName;
 	CommandButton		*m_pCancelButton;
 	CommandButton		*m_pSpectateButton;
+	CImageLabel			*m_pImage;
 
 	int					m_iCurrentInfo;
+	Label				*m_pp;
 
 public:
 	CTeamMenuPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
