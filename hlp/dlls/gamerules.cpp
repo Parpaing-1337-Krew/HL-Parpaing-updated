@@ -115,7 +115,7 @@ void CGameRules::SetSpeed(CBasePlayer *pPlayer)
 	long speed;
 	if ( pPlayer->m_iTeam == INSPECTEUR )
 		speed = 400;
-	else if  pPlayer->m_iTeam == SPECTATEUR )
+	else if ( pPlayer->m_iTeam == SPECTATEUR )
 		speed = 600;
 	else if ( pPlayer->m_iTeam == MACON1 || pPlayer->m_iTeam == MACON2 )
 	{

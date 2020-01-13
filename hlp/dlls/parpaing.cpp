@@ -209,8 +209,8 @@ void CParpaing :: FallInit( void )
 	//UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0) );//pointsize until it lands on the ground.
 	UTIL_SetSize(pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
 
-	SetTouch( DefaultTouch );
-	SetThink( FallThink2 );
+	SetTouch( &CBasePlayerItem::DefaultTouch );
+	SetThink( &CParpaing::FallThink2 );
 	pev->nextthink = gpGlobals->time + 0.1;
 }
 void CParpaing::FallThink2 ( void )
@@ -221,8 +221,8 @@ void CParpaing::FallThink2 ( void )
 	if ( pev->flags & FL_ONGROUND )
 	{
 		//BLP
-	//	SetTouch( DefaultTouch );
-	// detection avec le solid le plus proche (on sait jamais...)
+		// SetTouch( DefaultTouch );
+		// detection avec le solid le plus proche (on sait jamais...)
 
 		TraceResult trac;
 		UTIL_TraceLine( pev->origin, pev->origin - gpGlobals->v_up * 16, ignore_monsters, edict(), &trac );
@@ -493,7 +493,7 @@ void CParpaing::CreateFlyingParpaing()
 	pParpaing->pev->angles = UTIL_VecToAngles (pParpaing->pev->velocity);
 	pParpaing->pev->owner = ENT(m_pPlayer->pev);
 	pParpaing->pev->avelocity.x = RANDOM_FLOAT ( -100, -500 );//aucune idée de ce à quoi ca serre
-	pParpaing->SetTouch( Touch );
+	pParpaing->SetTouch( &CBaseEntity::Touch );
 	pParpaing->Team = m_pPlayer->m_iTeam;
 	
 	
@@ -513,7 +513,7 @@ void CParpaing::CreateSpecialParpaing(int m_iType)
 
 	}
 	pParpaing->Spawn();
-	pParpaing->SetTouch(BounceTouch);
+	pParpaing->SetTouch(&CParpaing::BounceTouch);
 	pParpaing->pev->movetype = MOVETYPE_TOSS;
 	UTIL_SetSize(pParpaing->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
 	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
@@ -594,7 +594,7 @@ void CParpaing::PrimaryAttack()
 
 	if (! Swing( 1 ))
 	{
-		SetThink( SwingAgain );
+		SetThink( &CParpaing::SwingAgain );
 		pev->nextthink = gpGlobals->time + 1.0;
 	}
 }
@@ -793,7 +793,7 @@ int CParpaing::Swing( int fFirst )
 #endif
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.0;
 		
-		SetThink( Smack );
+		SetThink( &CParpaing::Smack );
 		pev->nextthink = UTIL_WeaponTimeBase() + 0.2;
 
 		

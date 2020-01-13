@@ -95,7 +95,7 @@ void CHlpsound :: Spawn( void )
 	if (!Strt)
 		Strt=0;
 
-	SetThink(Think2); // le think
+	SetThink(&CHlpsound::Think2); // le think
 	pev->nextthink = gpGlobals->time + 1.0; 
 }
 
@@ -181,7 +181,7 @@ void PlayMp3 (CBasePlayer *pPlayer,CBaseEntity *pMp3)
 }
 
 
-void CHlpsound :: Think2 (void)
+void CHlpsound::Think2 (void)
 {
 	
 	//ALERT (at_console,"%i\n",m_radius);

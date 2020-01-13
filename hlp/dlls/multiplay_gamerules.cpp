@@ -442,8 +442,8 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	pl->m_iTeam = 0; //BLP : pas besoin je pense... , madfab : je crois ke si ][ Les codeurs en action...;> // :]
 	pl->m_iAlcool = 0;
 	
-	extern gmsgAlcool;
-	extern gmsgBar;
+	extern int gmsgAlcool;
+	extern int gmsgBar;
 	
 	MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,pl->edict());
 	WRITE_SHORT(pl->m_iAlcool ); //on uptdate l'état d'étililisme
@@ -812,8 +812,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 /*void CHalfLifeMultiplay::UpdateTeamName( CBasePlayer *pPlayer,bool msg )
 {
-}*/
 }
+*/
 
 //=========================================================
 //=========================================================

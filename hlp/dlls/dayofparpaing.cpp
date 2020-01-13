@@ -11,7 +11,7 @@ LINK_ENTITY_TO_CLASS( trigger_capture_point, CCapturePoint );
 void CCapturePoint::Spawn()
 {
 	InitTrigger();
-	SetTouch(Touch);
+	SetTouch(&CCapturePoint::Touch);
 	m_iCaptureAmount = 0;
 	m_flNextTouch = 0;
 }

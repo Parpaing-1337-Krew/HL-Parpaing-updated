@@ -36,8 +36,8 @@ void CBombParpaing::Spawn()
 	pev->renderfx = kRenderFxGlowShell;
 	pev->renderamt = 10;
 	pev->rendercolor = Vector( 255, 0, 0 );	// RGB
-	SetThink( Think );
-	SetUse( Use );
+	SetThink( &CBombParpaing::Think );
+	SetUse( &CBombParpaing::Use );
 	ExplodeTime = gpGlobals->time + BOMBPARPAING_EXPLODETIME;
 	ClickTime = gpGlobals->time + 1;
 	DefuseAmount = 0;
@@ -119,66 +119,62 @@ void CBombParpaing::Think()
 
 	if (DefuseTime <= gpGlobals->time && Defusage)
 	{
-	DefuseTime = gpGlobals->time + 1;
-	DefuseAmount++;
+		DefuseTime = gpGlobals->time + 1;
+		DefuseAmount++;
 	}
-		
 	
-
-
 	if (DefuseAmount>= 10)
 		Defused();
 	if ( ExplodeTime <= gpGlobals->time )
 	{
-	
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_COORD( pev->origin.x);
-		WRITE_COORD( pev->origin.y);
-		WRITE_COORD( pev->origin.z + 16);
-		WRITE_COORD( pev->origin.x);
-		WRITE_COORD( pev->origin.y);
-		WRITE_COORD( pev->origin.z + 16 + BOMBPARPAING_RADIUS / .2); // reach damage radius over .3 seconds
-		WRITE_SHORT( m_iSpriteTexture );
-		WRITE_BYTE( 0 ); // startframe
-		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 2 ); // life
-		WRITE_BYTE( 16 );  // width
-		WRITE_BYTE( 0 );   // noise
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( pev->origin.x);
+			WRITE_COORD( pev->origin.y);
+			WRITE_COORD( pev->origin.z + 16);
+			WRITE_COORD( pev->origin.x);
+			WRITE_COORD( pev->origin.y);
+			WRITE_COORD( pev->origin.z + 16 + BOMBPARPAING_RADIUS / .2); // reach damage radius over .3 seconds
+			WRITE_SHORT( m_iSpriteTexture );
+			WRITE_BYTE( 0 ); // startframe
+			WRITE_BYTE( 0 ); // framerate
+			WRITE_BYTE( 2 ); // life
+			WRITE_BYTE( 16 );  // width
+			WRITE_BYTE( 0 );   // noise
 
-		WRITE_BYTE( 245   );
-		WRITE_BYTE( 202 );
-		WRITE_BYTE( 27  );
+			WRITE_BYTE( 245   );
+			WRITE_BYTE( 202 );
+			WRITE_BYTE( 27  );
 
-		WRITE_BYTE( 255 ); //brightness
-		WRITE_BYTE( 0 );		// speed
-	MESSAGE_END();
+			WRITE_BYTE( 255 ); //brightness
+			WRITE_BYTE( 0 );		// speed
+		MESSAGE_END();
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_COORD( pev->origin.x);
-		WRITE_COORD( pev->origin.y);
-		WRITE_COORD( pev->origin.z + 16);
-		WRITE_COORD( pev->origin.x);
-		WRITE_COORD( pev->origin.y);
-		WRITE_COORD( pev->origin.z + 16 + ( BOMBPARPAING_RADIUS / 2 ) / .2); // reach damage radius over .3 seconds
-		WRITE_SHORT( m_iSpriteTexture );
-		WRITE_BYTE( 0 ); // startframe
-		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 2 ); // life
-		WRITE_BYTE( 16 );  // width
-		WRITE_BYTE( 0 );   // noise
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( pev->origin.x);
+			WRITE_COORD( pev->origin.y);
+			WRITE_COORD( pev->origin.z + 16);
+			WRITE_COORD( pev->origin.x);
+			WRITE_COORD( pev->origin.y);
+			WRITE_COORD( pev->origin.z + 16 + ( BOMBPARPAING_RADIUS / 2 ) / .2); // reach damage radius over .3 seconds
+			WRITE_SHORT( m_iSpriteTexture );
+			WRITE_BYTE( 0 ); // startframe
+			WRITE_BYTE( 0 ); // framerate
+			WRITE_BYTE( 2 ); // life
+			WRITE_BYTE( 16 );  // width
+			WRITE_BYTE( 0 );   // noise
 
-		WRITE_BYTE( 245   );
-		WRITE_BYTE( 202 );
-		WRITE_BYTE( 27  );
+			WRITE_BYTE( 245   );
+			WRITE_BYTE( 202 );
+			WRITE_BYTE( 27  );
+			
+			WRITE_BYTE( 255 ); //brightness
+			WRITE_BYTE( 0 );		// speed
+		MESSAGE_END();
 		
-		WRITE_BYTE( 255 ); //brightness
-		WRITE_BYTE( 0 );		// speed
-	MESSAGE_END();
-	
-	
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_EXPLOSION);		
 			WRITE_COORD( pev->origin.x );
 			WRITE_COORD( pev->origin.y );
@@ -222,21 +218,18 @@ void CBombParpaing::Think()
 				else
 				{
 					float Degats = (((BOMBPARPAING_RADIUS-((float)distance))/BOMBPARPAING_RADIUS)*BOMBPARPAING_DMG);
-
+					
 					if (Degats < 0)
 						Degats = 0;
-
-						pEntity->TakeDamage(pev, pev, Degats, DMG_BLAST | DMG_NEVERGIB);
+					
+					pEntity->TakeDamage(pev, pev, Degats, DMG_BLAST | DMG_NEVERGIB);
 				}
 			}
 		}
 
 	}
 
-	
-
 	pev->nextthink = gpGlobals->time + 0.1;
-	
 }
 
 
@@ -353,7 +346,7 @@ void CBombParpaingWeapon::SecondaryAttack()
 	CBombParpaingWeapon *pBombParpaingWeapon = GetClassPtr((CBombParpaingWeapon *)NULL );
 	pBombParpaingWeapon->pev->classname = MAKE_STRING("weapon_bombparpaing");
 	pBombParpaingWeapon->Spawn();
-	pBombParpaingWeapon->SetTouch(Touch);
+	pBombParpaingWeapon->SetTouch(&CBombParpaingWeapon::Touch);
 	pBombParpaingWeapon->pev->movetype = MOVETYPE_TOSS;
 	UTIL_SetSize(pBombParpaingWeapon->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
 	

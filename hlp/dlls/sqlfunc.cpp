@@ -1,6 +1,6 @@
 #include "extdll.h"
 #include "util.h"
-#include "sql.h"
+//#include "sql.h"
 #include "time.h"
 #include "cbase.h"
 #include "player.h"

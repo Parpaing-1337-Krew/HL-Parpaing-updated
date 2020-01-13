@@ -95,7 +95,6 @@ HLPDLL_OBJS = \
 	$(HLPDLL_OBJ_DIR)/soundent.o \
 	$(HLPDLL_OBJ_DIR)/special_parpaing.o \
 	$(HLPDLL_OBJ_DIR)/spectator.o \
-	$(HLPDLL_OBJ_DIR)/sqlfunc.o \
 	$(HLPDLL_OBJ_DIR)/squadmonster.o \
 	$(HLPDLL_OBJ_DIR)/subs.o \
 	$(HLPDLL_OBJ_DIR)/talkmonster.o \

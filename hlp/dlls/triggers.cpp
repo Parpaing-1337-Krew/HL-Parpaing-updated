@@ -28,6 +28,11 @@
 #include "trains.h"			// trigger_camera has train functionality
 #include "gamerules.h"
 
+//BLP
+#include "triggers.h"
+#include "weapons.h"
+//BLP
+
 #define	SF_TRIGGER_PUSH_START_OFF	2//spawnflag that makes trigger_push spawn turned OFF
 #define SF_TRIGGER_HURT_TARGETONCE	1// Only fire hurt target once
 #define	SF_TRIGGER_HURT_START_OFF	2//spawnflag that makes trigger_push spawn turned OFF
@@ -516,7 +521,7 @@ void CRenderFxManager :: Use ( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	}
 }
 
-/* Moved to triggers.h to be included in dayofparpaing.cpp
+/* Moved to triggers.h, in order to be included in dayofparpaing.cpp
 class CBaseTrigger : public CBaseToggle
 {
 public:
@@ -2447,7 +2452,7 @@ LINK_ENTITY_TO_CLASS( trigger_casto, CTriggerCasto );
 void CTriggerCasto::Spawn( void )
 {
 	InitTrigger();
-	SetTouch( Touch2 );
+	SetTouch( &CTriggerCasto::Touch2 );
 	m_iDernierRetrait = 0;
 }
 
@@ -2519,7 +2524,7 @@ void CTriggerBar::Spawn( void )
 	InitTrigger();
 	
 	pastis = FALSE;
-	SetThink(WhoIsInEntityThink);
+	SetThink( &CTriggerBar::WhoIsInEntityThink );
 	pev->nextthink=gpGlobals->time + 0.1;
 }
 
@@ -2570,7 +2575,7 @@ LINK_ENTITY_TO_CLASS( trigger_macon1, CTriggerMacon1 );
 void CTriggerMacon1::Spawn( void )
 {
 	InitTrigger();
-	SetTouch( Touch2 );
+	SetTouch( &CTriggerMacon1::Touch2 );
 }
 
 void CTriggerMacon1::Touch2( CBaseEntity *pOther )
@@ -2614,7 +2619,7 @@ LINK_ENTITY_TO_CLASS( trigger_macon2, CTriggerMacon2 );
 void CTriggerMacon2::Spawn( void )
 {
 	InitTrigger();
-	SetTouch( Touch2 );
+	SetTouch( &CTriggerMacon2::Touch2 );
 }
 
 void CTriggerMacon2::Touch2( CBaseEntity *pOther )

@@ -169,7 +169,6 @@
     <ClCompile Include="..\..\hlp\dlls\soundent.cpp" />
     <ClCompile Include="..\..\hlp\dlls\special_parpaing.cpp" />
     <ClCompile Include="..\..\hlp\dlls\spectator.cpp" />
-    <ClCompile Include="..\..\hlp\dlls\sqlfunc.cpp" />
     <ClCompile Include="..\..\hlp\dlls\squadmonster.cpp" />
     <ClCompile Include="..\..\hlp\dlls\subs.cpp" />
     <ClCompile Include="..\..\hlp\dlls\talkmonster.cpp" />
@@ -227,7 +226,6 @@
     <ClInclude Include="..\..\hlp\dlls\soundent.h" />
     <ClInclude Include="..\..\hlp\dlls\special_parpaing.h" />
     <ClInclude Include="..\..\hlp\dlls\spectator.h" />
-    <ClInclude Include="..\..\hlp\dlls\sql.h" />
     <ClInclude Include="..\..\hlp\dlls\squadmonster.h" />
     <ClInclude Include="..\..\hlp\dlls\StdAfx.h" />
     <ClInclude Include="..\..\hlp\dlls\talkmonster.h" />

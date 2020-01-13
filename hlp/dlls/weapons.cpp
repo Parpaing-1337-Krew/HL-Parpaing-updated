@@ -1450,7 +1450,7 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	{
 		SET_MODEL( ENT(pev), "models/w_parpaing.mdl");
 		pWeapon->m_pPlayer->m_iHasParpaing = 0;
-		pWeapon->SetTouch( Touch );
+		pWeapon->SetTouch( &CWeaponBox::Touch );
 	}
 
 	//ALERT ( at_console, "packed %s\n", STRING(pWeapon->pev->classname) );

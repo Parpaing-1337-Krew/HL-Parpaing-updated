@@ -11,7 +11,7 @@
 #include "soundent.h"
 #include "decals.h"
 #include "mur.h"
-#include "sql.h"
+//#include "sql.h"
 
 
 
@@ -264,7 +264,7 @@ void CMur::Pose(CBasePlayer *pPlayer)
 		
 		g_pGameRules->SetSpeed(pPlayer);
 
-		SQLPoseParpaing(pPlayer);
+		//SQLPoseParpaing(pPlayer);
 
 				
 	CBaseEntity *mur1 = UTIL_FindEntityByClassname(NULL, "mur1");

@@ -28,10 +28,9 @@ void CFlag::Spawn()
 	pev->renderamt = 0;
 	a = 1;
 	m_iState = STATE_OFF;
-	SetThink(Think);
+	SetThink(&CFlag::Think);
 	SetTouch(NULL);
 	pev->nextthink = gpGlobals->time + 0.1;
-
 }
 
 void CFlag::Touch( CBaseEntity *pOther)
@@ -41,35 +40,21 @@ void CFlag::Touch( CBaseEntity *pOther)
 	if (!pOther->IsPlayer())
 		return;
 	CBasePlayer *pPlayer = (CBasePlayer*)pOther;
-
 	
 	if ((pPlayer->m_iTeam != MACON1) && (pPlayer->m_iTeam != MACON2)) 
 		return;
-
-
-
-
-
-if (pPlayer->m_iHasParpaing == 1)
-{
-
-if(pPlayer->MsgTime <= gpGlobals->time)
-{
-ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("Transporter des parpaings ou boire... il faut choisir\n"));
-pPlayer->MsgTime = gpGlobals->time + 5;
-return;
-}
-else
-return;
-}
-
-
-
-
-
-
-
-
+	
+	if (pPlayer->m_iHasParpaing == 1)
+	{
+		if(pPlayer->MsgTime <= gpGlobals->time)
+		{
+			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("Transporter des parpaings ou boire... il faut choisir\n"));
+			pPlayer->MsgTime = gpGlobals->time + 5;
+			return;
+		}
+		else
+			return;
+	}
 	
 	Spawn();
 	EMIT_SOUND(ENT(pev), CHAN_ITEM, "take_flag.wav", 1, ATTN_NORM);
@@ -82,13 +67,13 @@ return;
 	else
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("A la tienne, %s.\n", STRING(pPlayer->pev->netname)));
 	if (!g_pGameRules->m_iActiveFlags)
-			g_pGameRules->m_flCtfTime = gpGlobals->time;
+		g_pGameRules->m_flCtfTime = gpGlobals->time;
 }	
 
 void CFlag::Think()
 {
 	pev->nextthink = gpGlobals->time + 1;
-}	
+}
 
 void CHalfLifeMultiplay::CtfInit()
 {
@@ -102,7 +87,7 @@ void CHalfLifeMultiplay::CtfInit()
 				CFlag *pFlag = (CFlag*)pEnt;
 				pFlag->m_iState = STATE_ON;
 				pFlag->pev->renderamt = 255;
-//				pFlag->SetTouch(pFlag->Touch);
+				//pFlag->SetTouch(pFlag->Touch);
 				m_iActiveFlags ++;
 			}
 		}
@@ -123,9 +108,9 @@ void CHalfLifeMultiplay::CtfTest()
 		return;
 	if ((m_iActiveFlags == 0) && (m_iCtf)) 
 	{
-			m_iCtf = 0;
-			m_flCtfTime = gpGlobals->time + CVAR_GET_FLOAT("mp_ctf_time");
-			return;
+		m_iCtf = 0;
+		m_flCtfTime = gpGlobals->time + CVAR_GET_FLOAT("mp_ctf_time");
+		return;
 	}
 	if ((m_iCtf) || (RANDOM_LONG(0,1)))
 	{

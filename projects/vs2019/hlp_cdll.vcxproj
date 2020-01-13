@@ -96,7 +96,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\..\utils\vgui\lib\win32_vc6\vgui.lib;wsock32.lib;..\..\lib\public\sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\utils\vgui\lib\win32_vc6\vgui.lib;wsock32.lib;..\..\lib\public\sdl2.lib;..\..\lib\hlp\fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <BaseAddress>
       </BaseAddress>
     </Link>
@@ -213,6 +213,7 @@
     <ClInclude Include="..\..\hlp\cl_dll\interpolation.h" />
     <ClInclude Include="..\..\hlp\cl_dll\in_defs.h" />
     <ClInclude Include="..\..\hlp\cl_dll\kbutton.h" />
+    <ClInclude Include="..\..\hlp\cl_dll\loaddll.h" />
     <ClInclude Include="..\..\hlp\cl_dll\StudioModelRenderer.h" />
     <ClInclude Include="..\..\hlp\cl_dll\tri.h" />
     <ClInclude Include="..\..\hlp\cl_dll\util_vector.h" />
@@ -226,7 +227,6 @@
     <ClInclude Include="..\..\hlp\cl_dll\vgui_SpectatorPanel.h" />
     <ClInclude Include="..\..\hlp\cl_dll\view.h" />
     <ClInclude Include="..\..\hlp\cl_dll\wrect.h" />
-    <ClInclude Include="..\..\hlp\dlls\extdll.h" />
     <ClInclude Include="..\..\common\parsemsg.h" />
     <ClInclude Include="..\..\common\Platform.h" />
     <ClInclude Include="..\..\game_shared\vgui_scrollbar2.h" />

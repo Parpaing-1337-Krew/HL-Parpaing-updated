@@ -252,6 +252,13 @@ void CBasePlayer::StartDeathCam( void ) { }
 void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle ) { }
 void CBasePlayer::PlayerUse ( void ) { }
 void CBasePlayer::Jump() { }
+//BLP
+void CBasePlayer::AutoHelp(int id) { }
+void CBasePlayer::AutoHelpInit() { }
+void CBasePlayer::AutoHelpCheck() { }
+void CBasePlayer::AutoHelpSet(int id, int time) { }
+void CBasePlayer::AutoHelpUnset(int id) { }
+//BLP
 void CBasePlayer::Duck( ) { }
 int  CBasePlayer::Classify ( void ) { return 0; }
 void CBasePlayer::PreThink(void) { }
@@ -282,6 +289,7 @@ void CBasePlayer::ItemPostFrame() { }
 int CBasePlayer::AmmoInventory( int iAmmoIndex ) { return -1; }
 int CBasePlayer::GetAmmoIndex(const char *psz) { return -1; }
 void CBasePlayer::SendAmmoUpdate(void) { }
+void CBasePlayer::DropParpaing(void) { }
 void CBasePlayer :: UpdateClientData( void ) { }
 BOOL CBasePlayer :: FBecomeProne ( void ) { return TRUE; }
 void CBasePlayer :: BarnacleVictimBitten ( entvars_t *pevBarnacle ) { }

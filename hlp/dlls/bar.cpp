@@ -12,7 +12,7 @@
 #include "decals.h"
 #include "gamerules.h"
 #include "game.h"
-#include "sql.h"
+//#include "sql.h"
 
 
 
@@ -107,8 +107,10 @@ void CBasePlayer::SortDuBar(void)
 	}
 	EMIT_SOUND(ENT(pev),CHAN_VOICE,son,1,ATTN_NORM); 
 
+	/*
 	if (m_fTimeBar!=0 || m_iHealhTaken!=0)
-	SQLWasInBar (this,m_fTimeBar,m_iHealhTaken);
+		SQLWasInBar (this,m_fTimeBar,m_iHealhTaken);
+	*/
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgBar, NULL ,this->edict());
 	WRITE_BYTE(0); //on vire le sprite

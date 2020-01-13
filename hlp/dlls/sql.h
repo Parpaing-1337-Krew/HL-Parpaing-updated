@@ -1,5 +1,5 @@
 #include <winsock.h>
-#include "mysql.h"
+//#include "mysql.h"
 
 void SQLAddRequete(char* requete );
 void SQLShow (void);
@@ -12,5 +12,3 @@ void SQLPoseParpaing (CBasePlayer *pPlayer);
 void SQLDeathNotice (char* pVictim,char* pKiller,char* pevInflictor);
 void SQLWasInBar (CBasePlayer *pPlayer,float m_fTimeBar,int m_iHealhTaken);
 void SQLBlame (CBasePlayer *pAttacker,CBasePlayer *pVictim);
-
-
