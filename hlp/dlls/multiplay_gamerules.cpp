@@ -28,6 +28,14 @@
 #include	"voice_gamemgr.h"
 #include	"hltv.h"
 
+#include	"hlp.h"
+#include	"megret.h"
+#include	"defuse_the_parpaing.h"
+#include	"ctf.h"
+#include	"auto-help.h"
+//#include	"sql.h"
+#include	"mur.h"
+
 #if !defined ( _WIN32 )
 #include <ctype.h>
 #endif
@@ -38,6 +46,8 @@ extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
 extern int gmsgServerName;
+extern int gmsgTeamMenu;
+extern int gmsgTime;
 
 extern int g_teamplay;
 
@@ -78,6 +88,19 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	RefreshSkillData();
 	m_flIntermissionEndTime = 0;
 	g_flIntermissionStartTime = 0;
+	
+	m_flMegretTime = gpGlobals->time + CVAR_GET_FLOAT("mp_megret_time");
+	m_iMegret = 0;
+	m_flDefuseTime = gpGlobals->time + CVAR_GET_FLOAT("mp_defuse_time");
+	m_iDefuse = 0;
+	m_flCtfTime = gpGlobals->time + CVAR_GET_FLOAT("mp_ctf_time");
+	m_iCtf = 0;
+	
+	/*
+	m_ipt4parpaing = CVAR_GET_FLOAT("mp_pt4parpaing");
+	m_ipt4blame = CVAR_GET_FLOAT("mp_pt4blame");
+	m_flKOtime = CVAR_GET_FLOAT("mp_kotime");
+	*/
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -129,7 +152,8 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.suitchargerCapacity = 30;
 
 	// Crowbar whack
-	gSkillData.plrDmgCrowbar = 25;
+	//gSkillData.plrDmgCrowbar = 25;
+	gSkillData.plrDmgCrowbar = 10;
 
 	// Glock Round
 	gSkillData.plrDmg9MM = 12;
@@ -167,6 +191,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// hornet
 	gSkillData.plrDmgHornet = 10;
+	
+	//Parpaing
+	gSkillData.plrDmgParpaing = 24;
 }
 
 // longest the intermission can last, in seconds
@@ -407,6 +434,35 @@ void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 
 void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 {
+	MESSAGE_BEGIN( MSG_ONE, gmsgTeamMenu, NULL,  pl->pev );
+	WRITE_BYTE( 30 ); //Ici c'est le numéro du menu qui a besoin d'être envoyé
+	MESSAGE_END();
+	
+	//a la connection
+	pl->m_iTeam = 0; //BLP : pas besoin je pense... , madfab : je crois ke si ][ Les codeurs en action...;> // :]
+	pl->m_iAlcool = 0;
+	
+	extern gmsgAlcool;
+	extern gmsgBar;
+	
+	MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,pl->edict());
+	WRITE_SHORT(pl->m_iAlcool ); //on uptdate l'état d'étililisme
+	MESSAGE_END();
+	EMIT_SOUND(ENT(pl->pev),CHAN_VOICE,"alcool/action_boire.wav",1,ATTN_NORM);
+	
+	MESSAGE_BEGIN( MSG_ONE, gmsgBar, NULL ,pl->edict());
+	WRITE_BYTE(0); //on vire le sprite
+	MESSAGE_END();
+
+	//pl->AutoHelpInit();
+	//pl->AutoHelpSet(0,5);
+	//pl->AutoHelpSet(1,10);
+	strcpy(pl->m_szTeamName , "Spectateur");
+	//pl->StartObserving(); BLP :inutile à présent
+	ShowVGUI(pl,MENU_TEAM);
+	//fin
+	Init(pl); // mp3
+	
 	// notify other clients of player joining the game
 	UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s has joined the game\n", 
 		( pl->pev->netname && STRING(pl->pev->netname)[0] != 0 ) ? STRING(pl->pev->netname) : "unconnected" ) );
@@ -428,9 +484,18 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			GETPLAYERAUTHID( pl->edict() ),
 			GETPLAYERUSERID( pl->edict() ) );
 	}
-
+	
+	CBaseEntity *mur1 = UTIL_FindEntityByClassname(NULL, "mur1");
+	CBaseEntity *mur2 = UTIL_FindEntityByClassname(NULL, "mur2");
+	
+	MESSAGE_BEGIN ( MSG_ALL, gmsgTime);
+	WRITE_SHORT ( 2 );
+	WRITE_BYTE ( GetClassPtr((CMur *)mur1->pev )->avancement ); // 51
+	WRITE_BYTE ( GetClassPtr((CMur *)mur2->pev )->avancement ); // ricard
+	MESSAGE_END();
+	
 	UpdateGameMode( pl );
-
+	pl->pev->frags = 0;
 	// sending just one score makes the hud scoreboard active;  otherwise
 	// it is just disabled for single play
 	MESSAGE_BEGIN( MSG_ONE, gmsgScoreInfo, NULL, pl->edict() );
@@ -475,9 +540,74 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 	if ( pClient )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance( pClient );
-
+		StopSound(pPlayer);
+		
 		if ( pPlayer )
 		{
+			//////////////////////////////////////
+			if (pPlayer->m_iTeam == MACON1 || pPlayer->m_iTeam == MACON2)
+			{
+				int nbblame, nbmacon;
+				nbblame=0;
+				nbmacon=0;
+				for (int i = 1;i<= gpGlobals->maxClients; i++)
+				{
+					CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+					if ( pPlayer2 )
+					{
+						CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+						if (pPlayer3->m_iTeam == 1 || pPlayer3->m_iTeam == 2 )
+						{
+							nbmacon++;
+							if (pPlayer3->AlreadyBlame==1)
+							{
+								nbblame++;
+							}
+						}
+					}
+				}
+				//ALERT(at_console,"AVANT : blame : %i total : %i\n",nbblame,nbmacon);
+				if (nbblame > 0 )
+				{
+					if (pPlayer->AlreadyBlame==1)
+					{
+						nbblame--;
+					}
+				}
+				
+				if (nbmacon > 0)
+				{
+					nbmacon--;
+				}
+				
+				if (nbblame == nbmacon) // tous les macon ont été blamé 
+				{
+					//pAttacker->AddPoints(REWARD_BLAMEALL, 1 );
+					for (int i = 1;i<= gpGlobals->maxClients; i++)
+					{
+						CBaseEntity *pPlayer4 = UTIL_PlayerByIndex( i );
+						if (pPlayer4)
+						{
+							UTIL_MessageEffect(pPlayer4,"Les inspecteurs remportent le round",1,-1,-1,0,Vector(255,255,50),255,Vector(0,0,0),0,1,1,1,0);
+							EMIT_SOUND(ENT(pPlayer4->pev),CHAN_VOICE,"voix/commentaires/inspecteurs_gagnent/inspecteurs_gagnent.wav",1,ATTN_NORM);
+							CBasePlayer *pPlayer5 = (CBasePlayer*)pPlayer;
+							pPlayer5->AlreadyBlame = 0;
+						}
+					}
+					ResetAvancement();
+				}
+				
+				//ALERT(at_console,"APRES : blame : %i total : %i\n",nbblame,nbmacon);
+				
+				MESSAGE_BEGIN ( MSG_ALL, gmsgTime);
+				WRITE_SHORT ( 4 );
+				WRITE_BYTE ( nbmacon );
+				WRITE_BYTE ( nbblame );
+				MESSAGE_END();
+				
+			}
+			//////////////////////////////////////
+			
 			FireTargets( "game_playerleave", pPlayer, pPlayer, USE_TOGGLE, 0 );
 
 			// team match?
@@ -533,6 +663,17 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	//if (CVAR_GET_FLOAT("cl_autohelp"))
+	//	pPlayer->AutoHelpCheck();
+	
+	if ( (pPlayer->m_fRespawnTime <= gpGlobals->time) && (pPlayer->m_iTrueTeam != 0) && (pPlayer->m_iTeam == 0) )
+	{
+		pPlayer->m_iTeam = pPlayer->m_iTrueTeam;
+		pPlayer->m_iTrueTeam = pPlayer->m_iTeam;
+		pPlayer->RemoveAllItems(TRUE);
+		pPlayer->Spawn();
+	}
+	
 	if ( g_fGameOver )
 	{
 		// check for button presses
@@ -546,10 +687,27 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	}
 }
 
+//douanier
+extern int gmsgAlcool;
+extern int gmsgSkill;
+extern int gmsgTeamInfo;
+
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
+	pPlayer->EnableControl(TRUE);
+	
+	pPlayer->m_iFOV = 90;
+	pPlayer->m_iHasParpaing = 0;
+	pPlayer->IsInBarArea = false;
+	//on update l'état de l'alcool coté client
+	pPlayer->m_iAlcool = 0;
+	MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,pPlayer->edict());
+	WRITE_SHORT(/*pPlayer->m_iAlcool*/0 );
+	MESSAGE_END();
+	// vala :)
+	
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
 
@@ -563,12 +721,98 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
+	/*
 	if ( addDefault )
 	{
 		pPlayer->GiveNamedItem( "weapon_crowbar" );
 		pPlayer->GiveNamedItem( "weapon_9mmhandgun" );
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
 	}
+	 */
+	if (pPlayer->m_iTeam == SPECTATEUR) // BLP:si spectateur....
+	{
+		strcpy(pPlayer->m_szTeamName , "Spectateur");
+		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->pev->takedamage = DAMAGE_NO;
+		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
+		pPlayer->pev->flags |= FL_SPECTATOR;
+		pPlayer->pev->effects |= EF_NODRAW;
+		pPlayer->m_afPhysicsFlags |= PFLAG_OBSERVER;
+		pPlayer->m_iHideHUD |= HIDEHUD_WEAPONS | HIDEHUD_FLASHLIGHT | HIDEHUD_HEALTH;
+		addDefault = FALSE; // BLP:Il n'a aucun équipement
+		
+		MESSAGE_BEGIN ( MSG_ONE, gmsgTime,NULL ,pPlayer->pev);
+		WRITE_SHORT ( 3 );
+		WRITE_BYTE ( 0 ); // 51
+		MESSAGE_END();
+		
+	}
+	else
+	{
+		// Make sure the player can see the HUD again
+		pPlayer->m_iHideHUD &= ~HIDEHUD_WEAPONS;
+		pPlayer->m_iHideHUD &= ~HIDEHUD_FLASHLIGHT;
+		pPlayer->m_iHideHUD &= ~HIDEHUD_HEALTH;
+		pPlayer->m_iHideHUD &= ~HIDEHUD_ALL;
+		//pPlayer->m_afPhysicsFlags &= ~PFLAG_OBSERVER; <== Ca nique le super-jump çà !
+		
+		switch(pPlayer->m_iTeam)
+		{
+			case MACON1:
+				strcpy(pPlayer->m_szTeamName , "Macon[51]");
+				pPlayer->GiveNamedItem ("weapon_truelle");
+				pPlayer->m_iCredibi = NULL;
+				pPlayer->m_NbKO = 0;
+				pPlayer->AlreadyBlame=0;
+				
+				MESSAGE_BEGIN ( MSG_ONE, gmsgTime,NULL ,pPlayer->pev);
+				WRITE_SHORT ( 3 );
+				WRITE_BYTE ( 1 ); // 51
+				MESSAGE_END();
+				
+				break;
+				
+			case MACON2:
+				strcpy(pPlayer->m_szTeamName , "Macon[Ricard]");
+				pPlayer->GiveNamedItem ("weapon_truelle");
+				pPlayer->m_iCredibi = NULL;
+				pPlayer->m_NbKO = 0;
+				pPlayer->AlreadyBlame=0;
+				
+				MESSAGE_BEGIN ( MSG_ONE, gmsgTime,NULL ,pPlayer->pev);
+				WRITE_SHORT ( 3 );
+				WRITE_BYTE ( 2 ); // ricard
+				MESSAGE_END();
+				
+				break;
+				
+			case INSPECTEUR:
+				strcpy(pPlayer->m_szTeamName , "Inspecteur");
+				
+				
+				pPlayer->GiveNamedItem ("weapon_sifflet");
+				pPlayer->GiveNamedItem ("weapon_carnet");
+				
+				//pPlayer->m_iCredibi = 0;
+				
+				MESSAGE_BEGIN ( MSG_ONE, gmsgTime,NULL ,pPlayer->pev);
+				WRITE_SHORT ( 3 );
+				WRITE_BYTE ( 3 ); // inspecteur
+				MESSAGE_END();
+				
+				break;
+		}
+		
+		g_pGameRules->SetSpeed(pPlayer);
+		// model du player
+		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", pPlayer->m_szTeamName );
+	}
+	
+}
+
+/*void CHalfLifeMultiplay::UpdateTeamName( CBasePlayer *pPlayer,bool msg )
+{
+}*/
 }
 
 //=========================================================
@@ -599,6 +843,9 @@ int CHalfLifeMultiplay :: IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *p
 	return 1;
 }
 
+void CHalfLifeMultiplay::UpdateTeamName( CBasePlayer *pPlayer,bool msg )
+{
+}
 
 //=========================================================
 // PlayerKilled - someone/something killed this player
@@ -660,11 +907,16 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		PK->m_flNextDecalTime = gpGlobals->time;
 	}
 #ifndef HLDEMO_BUILD
+	/*
 	if ( pVictim->HasNamedPlayerItem("weapon_satchel") )
 	{
 		DeactivateSatchels( pVictim );
 	}
+	*/
 #endif
+	//pVictim->m_iTrueTeam = pVictim->m_iTeam;
+	//pVictim->m_iTeam=0;
+	//pVictim->m_iRespawnTime = gpGlobals->time + CVAR_GET_FLOAT("mp_respawntime"); //BLP : 10 secondes de spectateur pour le [mort]
 }
 
 //=========================================================
@@ -807,7 +1059,17 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 				killer_weapon_name );		
 		}
 	}
-
+	
+	// MYSQl // Ruzgfpegk 20200113: ça dégage
+	/*
+	char infos[60];
+	char infos2[60];
+	sprintf(infos,"%s,,,%i,,,%i",STRING(pVictim->pev->netname),pVictim->m_iTeam,(int)pVictim->pev->frags);
+	sprintf(infos2,"%s,,,%i,,,%i",STRING((GetClassPtr((CBasePlayer *)pKiller))->pev->netname),(GetClassPtr((CBasePlayer *)pKiller))->m_iTeam,(int)(GetClassPtr((CBasePlayer *)pKiller))->pev->frags);
+	
+	SQLDeathNotice ((char*)infos,(char*)infos2,(char*)killer_weapon_name);
+	*/
+	
 	MESSAGE_BEGIN( MSG_SPEC, SVC_DIRECTOR );
 		WRITE_BYTE ( 9 );	// command length in bytes
 		WRITE_BYTE ( DRC_CMD_EVENT );	// player killed
@@ -883,6 +1145,7 @@ void CHalfLifeMultiplay :: PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerIte
 //=========================================================
 float CHalfLifeMultiplay :: FlWeaponRespawnTime( CBasePlayerItem *pWeapon )
 {
+	return -1;
 	if ( weaponstay.value > 0 )
 	{
 		// make sure it's only certain weapons
@@ -989,6 +1252,10 @@ void CHalfLifeMultiplay::PlayerGotItem( CBasePlayer *pPlayer, CItem *pItem )
 //=========================================================
 int CHalfLifeMultiplay::ItemShouldRespawn( CItem *pItem )
 {
+	/*
+	if (pItem->pev->classname=="weapon_parpaing") // si c'est un parpaing , on ne respawn pas.
+		return GR_ITEM_RESPAWN_NO;
+	*/
 	if ( pItem->pev->spawnflags & SF_NORESPAWN )
 	{
 		return GR_ITEM_RESPAWN_NO;
@@ -1003,6 +1270,7 @@ int CHalfLifeMultiplay::ItemShouldRespawn( CItem *pItem )
 //=========================================================
 float CHalfLifeMultiplay::FlItemRespawnTime( CItem *pItem )
 {
+	return -1;
 	return gpGlobals->time + ITEM_RESPAWN_TIME;
 }
 
@@ -1047,6 +1315,7 @@ int CHalfLifeMultiplay::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
 //=========================================================
 float CHalfLifeMultiplay::FlAmmoRespawnTime( CBasePlayerAmmo *pAmmo )
 {
+	return -1;  
 	return gpGlobals->time + AMMO_RESPAWN_TIME;
 }
 

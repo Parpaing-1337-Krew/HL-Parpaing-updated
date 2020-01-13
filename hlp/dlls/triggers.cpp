@@ -516,8 +516,7 @@ void CRenderFxManager :: Use ( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	}
 }
 
-
-
+/* Moved to triggers.h to be included in dayofparpaing.cpp
 class CBaseTrigger : public CBaseToggle
 {
 public:
@@ -534,6 +533,7 @@ public:
 
 	virtual int	ObjectCaps( void ) { return CBaseToggle :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 };
+*/
 
 LINK_ENTITY_TO_CLASS( trigger, CBaseTrigger );
 
@@ -2428,3 +2428,223 @@ void CTriggerCamera::Move()
 	float fraction = 2 * gpGlobals->frametime;
 	pev->velocity = ((pev->movedir * pev->speed) * fraction) + (pev->velocity * (1-fraction));
 }
+
+//BLP : ici je mets les triggers du mod (4)
+//PS de douanier : pour le bar on a besoin d'un "touchnot" cad une fonction lancée quand le joueur la touche pas (pour virer le sprite). Donc je vias bidouiller ca.
+//me Envoie un parpaing d'assaut dans la tronche de douanier ;>
+class CTriggerCasto : public CBaseTrigger
+{
+public:
+	int ObjectCaps( void ) { return FCAP_CONTINUOUS_USE; }
+	void Spawn( void );
+	void EXPORT Touch2( CBaseEntity *pOther);
+	
+	int m_iDernierRetrait; //BLP : j'aurais bien mis un nom anglophone mais je ne sais pas comment traduire 'retrait'. Bon, cette variable est remise à jour à chaque fois que Mr.Costarama distribue un parpaing
+};
+
+LINK_ENTITY_TO_CLASS( trigger_casto, CTriggerCasto );
+
+void CTriggerCasto::Spawn( void )
+{
+	InitTrigger();
+	SetTouch( Touch2 );
+	m_iDernierRetrait = 0;
+}
+
+void CTriggerCasto::Touch2( CBaseEntity *pOther)
+{
+	if ( !pOther->IsPlayer() )
+		return;
+	CBasePlayer *pPlayer = (CBasePlayer*)pOther;
+	
+	if ((!pPlayer->m_iHasParpaing)
+	    && (pPlayer->m_iTeam !=INSPECTEUR)
+	    && (pPlayer->m_iTeam != SPECTATEUR)
+	    && (pPlayer->pev->health >= 40)
+	    && (gpGlobals->time - m_iDernierRetrait > 5)) // BLP][27/02/03][Et si le délai avant retrait d'un parpaing est écoulé. Ici je met un écart de 5 secondes;
+	{
+		pPlayer->GiveNamedItem("weapon_parpaing");
+		//	pPlayer->m_iHasParpaing = TRUE //déplacé dans le code du parpaing
+		this->m_iDernierRetrait = gpGlobals->time;
+		char son[128];
+		int i;
+		i = RANDOM_LONG(0,11); // 50% de chance d'avoir un commentaire
+		
+		switch (i)
+		{
+			case 0:
+				sprintf(son, "voix/macons/prendparpaing/pp_anousdeux.wav");
+				break;
+			case 1:
+				sprintf(son, "voix/macons/prendparpaing/pp_beauparpaing.wav");
+				break;
+			case 2:
+				sprintf(son, "voix/macons/prendparpaing/pp_lourd.wav");
+				break;
+			case 3:
+				sprintf(son, "voix/macons/prendparpaing/pp_parti.wav");
+				break;
+			case 4:
+				sprintf(son, "voix/macons/prendparpaing/pp_tropchaud.wav");
+				break;
+			case 5:
+				sprintf(son, "voix/macons/prendparpaing/pp_vientla.wav");
+				break;
+			
+		}
+		
+		EMIT_SOUND(ENT(pPlayer->pev),CHAN_VOICE,son,1,ATTN_NORM);
+	}
+	else if (pPlayer->pev->health < 40 && pPlayer->m_iTeam !=INSPECTEUR && pPlayer->m_iTeam != SPECTATEUR && pPlayer->PoseParpaing== false)
+	{
+		UTIL_MessageEffect(pPlayer,"Vous etes trop blesse pour transporter un parpaing...\n",1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);	//BLP : Ok, mais est-ce la meilleure solution ?
+	}
+}
+
+class CTriggerBar : public CBaseTrigger
+{
+public:
+	void Spawn( void );
+	//void EXPORT Touch( CBaseEntity *pOther );
+	bool pastis;
+	int time;
+	void EXPORT WhoIsInEntityThink (void);
+	
+};
+
+LINK_ENTITY_TO_CLASS( trigger_bar, CTriggerBar );
+
+void CTriggerBar::Spawn( void )
+{
+	InitTrigger();
+	
+	pastis = FALSE;
+	SetThink(WhoIsInEntityThink);
+	pev->nextthink=gpGlobals->time + 0.1;
+}
+
+extern int gmsgAlcool;
+
+void CTriggerBar::WhoIsInEntityThink(void)
+{
+	int k;
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if (plr)
+		{
+			k=0;
+			CBaseEntity *ent = NULL;
+			
+			while ( (ent = UTIL_FindEntityInSphere( ent, plr->pev->origin, 1 )) != NULL )
+			{
+				if (ent == this)
+				{
+					k=1;
+				}
+			}
+			
+			if(k==1)
+			{
+				((CBasePlayer*)plr)->IsInBarArea=true;
+			}
+			else
+			{
+				((CBasePlayer*)plr)->IsInBarArea=false;
+			}
+		}
+	}
+	
+	pev->nextthink = gpGlobals->time + 1;
+}
+
+class CTriggerMacon1 : public CBaseTrigger
+{
+public:
+	void Spawn( void );
+	void EXPORT Touch2( CBaseEntity *pOther );
+};
+
+LINK_ENTITY_TO_CLASS( trigger_macon1, CTriggerMacon1 );
+
+void CTriggerMacon1::Spawn( void )
+{
+	InitTrigger();
+	SetTouch( Touch2 );
+}
+
+void CTriggerMacon1::Touch2( CBaseEntity *pOther )
+{
+	return;// Only save on clients
+	if ( !pOther->IsPlayer() )
+		return;
+	CBasePlayer *pPlayer = (CBasePlayer*)pOther;
+	if ((pPlayer->m_iTeam == 1) && (pPlayer->m_pActiveItem) && ( pPlayer->m_pActiveItem->m_iId == 16))
+	{
+		pPlayer->RemovePlayerItem(pPlayer->m_pActiveItem);
+		pPlayer->m_iHasParpaing = FALSE;
+		pPlayer->pev->frags ++;
+		pPlayer->UpdateScore();
+		
+		for (int i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+			if ( pPlayer2 )
+			{
+				CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+				EMIT_SOUND(ENT(pPlayer3->pev),CHAN_ITEM,"feedback/alarm.wav",1,ATTN_NORM);
+				char msg[50];
+				sprintf(msg,"%s pose un parpaing",STRING(pPlayer->pev->netname));
+				UTIL_MessageEffect(pPlayer2,msg,1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);
+				UTIL_LogPrintf( "%s pose un parpaing\n",STRING(pPlayer->pev->netname)) ;
+			}
+		}
+	}
+}
+
+class CTriggerMacon2 : public CBaseTrigger
+{
+public:
+	void Spawn( void );
+	void EXPORT Touch2( CBaseEntity *pOther );
+};
+
+LINK_ENTITY_TO_CLASS( trigger_macon2, CTriggerMacon2 );
+
+void CTriggerMacon2::Spawn( void )
+{
+	InitTrigger();
+	SetTouch( Touch2 );
+}
+
+void CTriggerMacon2::Touch2( CBaseEntity *pOther )
+{
+	return;
+	// Only save on clients
+	if ( !pOther->IsPlayer() )
+		return;
+	CBasePlayer *pPlayer = (CBasePlayer*)pOther;
+	
+	if ((pPlayer->m_iTeam == 2) && (pPlayer->m_pActiveItem) && ( pPlayer->m_pActiveItem->m_iId == 16))
+	{
+		pPlayer->RemovePlayerItem(pPlayer->m_pActiveItem);
+		pPlayer->m_iHasParpaing = FALSE;
+		pPlayer->pev->frags ++;
+		pPlayer->UpdateScore();
+		
+		for (int i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+			if ( pPlayer2 )
+			{
+				CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+				EMIT_SOUND(ENT(pPlayer3->pev),CHAN_ITEM,"feedback/alarm.wav",1,ATTN_NORM);
+				char msg[50];
+				sprintf(msg,"%s pose un parpaing",STRING(pPlayer->pev->netname));
+				UTIL_MessageEffect(pPlayer2,msg,1,-1,-1,0,Vector(200,0,0),255,Vector(0,0,0),0,1,1,1,0);
+				UTIL_LogPrintf( "%s pose un parpaing\n",STRING(pPlayer->pev->netname)) ;
+			}
+		}
+	}
+}
+//BLP : fin :/

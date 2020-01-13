@@ -23,6 +23,8 @@ class CBasePlayer;
 class CItem;
 class CBasePlayerAmmo;
 
+#define DERRICK_PROB 20
+
 // weapon respawning return codes
 enum
 {	
@@ -59,6 +61,28 @@ enum
 class CGameRules
 {
 public:
+	//ajout hlp
+	void SetSpeed(CBasePlayer *pPlayer);
+	int RoundOver;
+	int RoundTime;
+	//float SQLNxtSend; //<-- hlp aussi !
+	
+	int m_iMegret;
+	float m_flMegretTime;
+	int m_iDefuse;
+	float m_flDefuseTime;
+	int m_iCtf;
+	float m_flCtfTime;
+	int	m_iActiveFlags;
+	
+	int m_ipt4parpaing; // point par parpaing posé
+	int m_ipt4blame; // point par blame
+	float m_flKOtime; // tps kon reste o tapis (jeu de mot ! temps/tant...)
+	
+	virtual void UpdateTeamName( CBasePlayer *pPlayer,bool msg ) {}
+	char WinTeam[16];
+	
+	
 	virtual void RefreshSkillData( void );// fill skill data struct with proper values
 	virtual void Think( void ) = 0;// GR_Think - runs every server frame, should handle any timer tasks, periodic events, etc.
 	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity ) = 0;  // Can this item spawn (eg monsters don't spawn in deathmatch).
@@ -72,7 +96,8 @@ public:
 	virtual BOOL IsDeathmatch( void ) = 0;//is this a deathmatch game?
 	virtual BOOL IsTeamplay( void ) { return FALSE; };// is this deathmatch game being played with team rules?
 	virtual BOOL IsCoOp( void ) = 0;// is this a coop game?
-	virtual const char *GetGameDescription( void ) { return "Half-Life"; }  // this is the game name that gets seen in the server browser
+	//virtual const char *GetGameDescription( void ) { return "Half-Life"; }  // this is the game name that gets seen in the server browser
+	virtual const char *GetGameDescription( void ) { return "HL-Parpaing"; }  // this is the game name that gets seen in the server browser
 	
 // Client connection/disconnection
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] ) = 0;// a client just connected to the server (player hasn't spawned yet)
@@ -147,6 +172,7 @@ public:
 	virtual BOOL IsValidTeam( const char *pTeamName ) { return TRUE; }
 	virtual void ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTeamName, BOOL bKill, BOOL bGib ) {}
 	virtual const char *SetDefaultPlayerTeam( CBasePlayer *pPlayer ) { return ""; }
+	//virtual void UpdateTeamName( CBasePlayer *pPlayer,bool msg );
 
 // Sounds
 	virtual BOOL PlayTextureSounds( void ) { return TRUE; }
@@ -258,6 +284,7 @@ public:
 	CHalfLifeMultiplay();
 
 // GR_Think
+	virtual void UpdateTeamName( CBasePlayer *pPlayer,bool msg );
 	virtual void Think( void );
 	virtual void RefreshSkillData( void );
 	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity );
@@ -342,8 +369,17 @@ public:
 
 	virtual BOOL PlayTextureSounds( void ) { return FALSE; }
 	virtual BOOL PlayFootstepSounds( CBasePlayer *pl, float fvol );
-
-// Monsters
+	
+//HLP
+	virtual void CreateMegret( void );
+	virtual void DefuseInit( void );
+	virtual void DefuseTest( void );
+	virtual void DefuseEnd( void );
+	virtual void CtfTest( void );
+	virtual void CtfInit( void );
+	void ScorePanel(CBasePlayer *pPlayer);
+	
+	// Monsters
 	virtual BOOL FAllowMonsters( void );
 
 	// Immediately end a multiplayer game

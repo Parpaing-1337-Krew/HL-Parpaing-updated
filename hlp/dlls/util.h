@@ -249,6 +249,8 @@ extern TraceResult	UTIL_GetGlobalTrace		(void);
 extern void			UTIL_TraceModel			(const Vector &vecStart, const Vector &vecEnd, int hullNumber, edict_t *pentModel, TraceResult *ptr);
 extern Vector		UTIL_GetAimVector		(edict_t* pent, float flSpeed);
 extern int			UTIL_PointContents		(const Vector &vec);
+extern void			UTIL_MessageEffect		( CBaseEntity *pPlayer, const char *szText, int channel, float x, float y, int effect, Vector &color1, int a1, Vector &color2, int a2, float fadeinTime, float fadeoutTime, float holdTime, float fxTime);
+extern void			UTIL_MessageEffectAll( const char *szText, int channel, float x, float y, int effect, Vector &color1, int a1, Vector &color2, int a2, float fadeinTime, float fadeoutTime, float holdTime, float fxTime);
 
 extern int			UTIL_IsMasterTriggered	(string_t sMaster, CBaseEntity *pActivator);
 extern void			UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount );

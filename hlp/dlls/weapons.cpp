@@ -144,6 +144,7 @@ SpawnBlood
 */
 void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 {
+	return;
 	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
 }
 
@@ -310,7 +311,14 @@ void W_Precache(void)
 	giAmmoIndex = 0;
 
 	// custom items...
+	// hlp
+	UTIL_PrecacheOtherWeapon( "weapon_truelle" );
+	UTIL_PrecacheOtherWeapon( "weapon_parpaing" );
+	UTIL_PrecacheOtherWeapon( "weapon_bombparpaing" );
+	UTIL_PrecacheOtherWeapon( "weapon_carnet" );
+	UTIL_PrecacheOtherWeapon( "weapon_sifflet" );
 
+	/*
 	// common world objects
 	UTIL_PrecacheOther( "item_suit" );
 	UTIL_PrecacheOther( "item_battery" );
@@ -383,7 +391,8 @@ void W_Precache(void)
 	// hornetgun
 	UTIL_PrecacheOtherWeapon( "weapon_hornetgun" );
 #endif
-
+/////////////////
+*/
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -419,7 +428,8 @@ void W_Precache(void)
 	PRECACHE_SOUND ("weapons/bullet_hit2.wav");	// hit by bullet
 	
 	PRECACHE_SOUND ("items/weapondrop1.wav");// weapon falls to the ground
-
+	
+	PRECACHE_SOUND ("weapons/parpaing.wav");// weapon falls to the ground
 }
 
 
@@ -556,6 +566,15 @@ void CBasePlayerItem::AttemptToMaterialize( void )
 //=========================================================
 void CBasePlayerItem :: CheckRespawn ( void )
 {
+	// hlp (fab) me suis fé chier à te trouver toia ! parpaing ! respawn pas !
+	if (FStrEq((char*)STRING(pev->classname), "weapon_parpaing" ))
+		return;
+	if (FStrEq((char*)STRING(pev->classname), "weapon_bombparpaing" ))
+		return;
+	//BLP : AH le salaud ? Il respawnait ce con ? Tiens, prends-çà SALOPE !!! /me slaps a parpaing with a 200T SledgeHammer
+	//BLP : C'est bon je t'ai vengé Fab :op
+	// hlp
+
 	switch ( g_pGameRules->WeaponShouldRespawn( this ) )
 	{
 	case GR_WEAPON_RESPAWN_YES:
@@ -1419,7 +1438,20 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	pWeapon->pev->owner = edict();
 	pWeapon->SetThink( NULL );// crowbar may be trying to swing again, etc.
 	pWeapon->SetTouch( NULL );
-	pWeapon->m_pPlayer = NULL;
+	//pWeapon->m_pPlayer = NULL; BLP : on en a encore besoin /!\
+	
+	if ((!strcmp((char *)STRING( pWeapon->pev->classname ), "weapon_parpaing")))
+	{
+		SET_MODEL( ENT(pev), "models/w_parpaing.mdl");
+		pWeapon->m_pPlayer->m_iHasParpaing = 0;
+	}
+	
+	if ((!strcmp((char *)STRING( pWeapon->pev->classname ), "weapon_bombparpaing")))
+	{
+		SET_MODEL( ENT(pev), "models/w_parpaing.mdl");
+		pWeapon->m_pPlayer->m_iHasParpaing = 0;
+		pWeapon->SetTouch( Touch );
+	}
 
 	//ALERT ( at_console, "packed %s\n", STRING(pWeapon->pev->classname) );
 
@@ -1561,7 +1593,7 @@ void CBasePlayerWeapon::PrintState( void )
 	ALERT( at_console, "m_iclip:  %i\n", m_iClip );
 }
 
-
+/*
 TYPEDESCRIPTION	CRpg::m_SaveData[] = 
 {
 	DEFINE_FIELD( CRpg, m_fSpotActive, FIELD_INTEGER ),
@@ -1614,4 +1646,4 @@ TYPEDESCRIPTION	CSatchel::m_SaveData[] =
 	DEFINE_FIELD( CSatchel, m_chargeReady, FIELD_INTEGER ),
 };
 IMPLEMENT_SAVERESTORE( CSatchel, CBasePlayerWeapon );
-
+*/

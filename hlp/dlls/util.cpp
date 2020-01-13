@@ -505,6 +505,42 @@ int UTIL_MonstersInSphere( CBaseEntity **pList, int listMax, const Vector &cente
 }
 
 
+void UTIL_MessageEffectAll( const char *szText, int channel, float x, float y, int effect, Vector &color1, int a1, Vector &color2, int a2, float fadeinTime, float fadeoutTime, float holdTime, float fxTime)
+{
+	for (int i = 1;i<= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+		if ( pPlayer )
+		{
+			UTIL_MessageEffect( pPlayer, szText, channel, x, y, effect, color1, a1, color2, a2, fadeinTime, fadeoutTime, holdTime, fxTime);
+		}
+	}
+}
+
+
+void UTIL_MessageEffect( CBaseEntity *pPlayer, const char *szText, int channel, float x, float y, int effect, Vector &color1, int a1, Vector &color2, int a2, float fadeinTime, float fadeoutTime, float holdTime, float fxTime)
+{
+	hudtextparms_t     hText;
+	hText.channel = channel;
+	hText.x = x;
+	hText.y = y;
+	hText.effect = effect;
+	hText.r1 = color1.x;
+	hText.g1 = color1.y;
+	hText.b1 = color1.z;
+	hText.a1 = a1;
+	hText.r2 = color1.x;
+	hText.g2 = color1.y;
+	hText.b2 = color1.z;
+	hText.a2 = a2;
+	hText.fadeinTime = fadeinTime;
+	hText.fadeoutTime = fadeoutTime;
+	hText.holdTime = holdTime;
+	hText.fxTime = fxTime;
+	UTIL_HudMessage(pPlayer, hText, szText);
+}
+
+
 CBaseEntity *UTIL_FindEntityInSphere( CBaseEntity *pStartEntity, const Vector &vecCenter, float flRadius )
 {
 	edict_t	*pentEntity;

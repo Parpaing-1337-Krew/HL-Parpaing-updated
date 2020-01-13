@@ -26,6 +26,8 @@
 #include	"skill.h"
 #include	"game.h"
 
+#include	"math.h"
+
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
 DLL_GLOBAL CGameRules*	g_pGameRules = NULL;
@@ -105,6 +107,31 @@ BOOL CGameRules::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeap
 
 	// note: will fall through to here if GetItemInfo doesn't fill the struct!
 	return TRUE;
+}
+
+//douanier007 : met la vitesse en fonction de la vie
+void CGameRules::SetSpeed(CBasePlayer *pPlayer)
+{
+	long speed;
+	if ( pPlayer->m_iTeam == INSPECTEUR )
+		speed = 400;
+	else if  pPlayer->m_iTeam == SPECTATEUR )
+		speed = 600;
+	else if ( pPlayer->m_iTeam == MACON1 || pPlayer->m_iTeam == MACON2 )
+	{
+		speed = 300;
+		//calcul de la vitesse pour les maçon en fonction de la vie.
+		// (fab) je suis un demon , hop on fout une exponentiel :]
+		//speed =173.4 * exp(0.0088*pPlayer->pev->health); // pure equation de fou :]
+		//ALERT(at_console,"speed : %i\n",(int)speed);
+		// en gros ca donne une vitesse de 175 minimum et 420 au max (175 c deja assez lent...)
+		//speed = 20 + pPlayer->pev->health * 4;
+	}
+	
+	if ( pPlayer->m_iHasParpaing == 1 )
+		speed *= 0.6;
+	
+	g_engfuncs.pfnSetClientMaxspeed( ENT( pPlayer->pev ),speed);
 }
 
 //=========================================================
@@ -311,8 +338,13 @@ void CGameRules::RefreshSkillData ( void )
 CGameRules *InstallGameRules( void )
 {
 	SERVER_COMMAND( "exec game.cfg\n" );
+	SERVER_COMMAND( UTIL_VarArgs("exec maps/%s.cfg\n", STRING(gpGlobals->mapname)) );
 	SERVER_EXECUTE( );
-
+	
+	g_teamplay = 1;
+	return new CHalfLifeTeamplay;
+	
+	/*
 	if ( !gpGlobals->deathmatch )
 	{
 		// generic half-life
@@ -341,6 +373,7 @@ CGameRules *InstallGameRules( void )
 			return new CHalfLifeMultiplay;
 		}
 	}
+	*/
 }
 
 

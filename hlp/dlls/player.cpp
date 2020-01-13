@@ -37,6 +37,43 @@
 #include "pm_shared.h"
 #include "hltv.h"
 
+#include "teamplay_gamerules.h"
+#include "hlp.h"
+#include "mur.h"
+#include "defuse_the_parpaing.h"
+#include "weapons.h"
+//#include "sql.h"
+
+//#define animation par Douanier007
+//TODO : Xander met les bons numéros d'animation
+//Mes pates sont bonnes
+//TODO : Les anims de carnet et sifflet (yenapa)
+// Sur le model de maçon récent mais pas beau :
+// #define Truelle_Shoot_Crouch 76 // 20 sur le vieux
+// #define Truelle_Shoot 74 // 18 sur le vieux
+// #define Parpaing_Shoot_Crouch 81 // 24 sur le vieux
+// #define Parpaing_Shoot 78 // 22 sur le vieux
+
+/*
+#define Truelle_Shoot_Crouch 76
+#define Truelle_Shoot 74
+#define Parpaing_Shoot_Crouch 81
+#define Parpaing_Shoot 78
+#define Carnet_Shoot_Crouch 86
+#define Carnet_Shoot 84
+#define Sifflet_Shoot_Crouch 90
+#define Sifflet_Shoot 88
+*/
+
+#define Truelle_Shoot_Crouch 28
+#define Truelle_Shoot 26
+#define Parpaing_Shoot_Crouch 28
+#define Parpaing_Shoot 26
+#define Carnet_Shoot_Crouch 28
+#define Carnet_Shoot 26
+#define Sifflet_Shoot_Crouch 28
+#define Sifflet_Shoot 26
+
 // #define DUCKFIX
 
 extern DLL_GLOBAL ULONG		g_ulModelIndexPlayer;
@@ -45,6 +82,9 @@ extern DLL_GLOBAL	BOOL	g_fDrawLines;
 int gEvilImpulse101;
 extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 
+//hlp
+float LastTime=NULL;
+int BadKill=NULL;
 
 BOOL gInitHUD = TRUE;
 
@@ -64,6 +104,8 @@ extern CGraph	WorldGraph;
 #define TRAIN_MEDIUM	0x03
 #define TRAIN_FAST		0x04 
 #define TRAIN_BACK		0x05
+
+#define REWARD_BLAMEALL 50
 
 #define	FLASH_DRAIN_TIME	 1.2 //100 units/3 minutes
 #define	FLASH_CHARGE_TIME	 0.2 // 100 units/20 seconds  (seconds per unit)
@@ -149,6 +191,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 
 
 int giPrecacheGrunt = 0;
+int giPrecacheMegret = 0;
 int gmsgShake = 0;
 int gmsgFade = 0;
 int gmsgSelAmmo = 0;
@@ -160,7 +203,7 @@ int gmsgShowGameTitle = 0;
 int gmsgCurWeapon = 0;
 int gmsgHealth = 0;
 int gmsgDamage = 0;
-int gmsgBattery = 0;
+//int gmsgBattery = 0;
 int gmsgTrain = 0;
 int gmsgLogo = 0;
 int gmsgWeaponList = 0;
@@ -186,7 +229,20 @@ int gmsgGeigerRange = 0;
 int gmsgTeamNames = 0;
 
 int gmsgStatusText = 0;
-int gmsgStatusValue = 0; 
+int gmsgStatusValue = 0;
+
+int gmsgMp3 = 0;
+int gmsgTeamMenu = 0;
+int gmsgTime=0;
+int gmsgAlcool = 0; //l'état d'alcoolémie
+int gmsgBar = 0;
+int gmsgParpaing = 0; // pose d'un parpaing
+int gmsgBlame = 0; //Blame in the Face :]
+int gmsgDefuse = 0; //L'affichage du defusisme :p
+int gmsgCarnet = 0; //affichage d'un sprite carnet poru dire ke le macon a bien été stopper , et kil lui reste 3 secondes pour le blamer !
+
+//int gmsgSkill = 0;
+//int gmsgChaos = 0; // chaos ou non, avec la var IsChaos;
 
 
 
@@ -205,7 +261,7 @@ void LinkUserMessages( void )
 	gmsgFlashBattery = REG_USER_MSG("FlashBat", 1);
 	gmsgHealth = REG_USER_MSG( "Health", 1 );
 	gmsgDamage = REG_USER_MSG( "Damage", 12 );
-	gmsgBattery = REG_USER_MSG( "Battery", 2);
+	//gmsgBattery = REG_USER_MSG( "Battery", 2);
 	gmsgTrain = REG_USER_MSG( "Train", 1);
 	//gmsgHudText = REG_USER_MSG( "HudTextPro", -1 );
 	gmsgHudText = REG_USER_MSG( "HudText", -1 ); // we don't use the message but 3rd party addons may!
@@ -234,13 +290,182 @@ void LinkUserMessages( void )
 	gmsgTeamNames = REG_USER_MSG( "TeamNames", -1 );
 
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
-	gmsgStatusValue = REG_USER_MSG("StatusValue", 3); 
+	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 
+	gmsgMp3 = REG_USER_MSG( "Mp3", -1 );
+	gmsgTime = REG_USER_MSG( "Time", -1);
+	gmsgAlcool = REG_USER_MSG("Alcool", 2);
+	gmsgBar = REG_USER_MSG("Bar",1);
+	gmsgBlame = REG_USER_MSG("Blame",1);
+	gmsgParpaing = REG_USER_MSG("Parpaing",2);
+	gmsgTeamMenu = REG_USER_MSG("VGUIMenu", 1);
+	gmsgDefuse = REG_USER_MSG("Defuse", 1);
+	gmsgCarnet = REG_USER_MSG("Carnet",1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
 
+// hlp
 
+void CBasePlayer ::SendMessage2Player (char* msg)
+{
+	MESSAGE_BEGIN ( MSG_ONE, gmsgTime,NULL,this->edict());
+	WRITE_SHORT ( 5 );
+	WRITE_STRING ( (char*)msg ); // msg à afficher sur le vgui
+	MESSAGE_END();
+	
+}
+
+void CBasePlayer :: Blame( void )
+{
+	MESSAGE_BEGIN( MSG_ONE, gmsgBlame, NULL ,this->edict());
+	WRITE_BYTE(1); //Blame
+	MESSAGE_END();
+}
+
+void CBasePlayer :: BlameMacon (CBasePlayer *pAttacker,CBasePlayer *pVictim)
+{
+// commentaire de la victime
+	char son[128];
+	int i;
+	i = RANDOM_LONG(0,8);
+	switch (i)
+	{
+		case 0:
+			sprintf(son, "voix/macons/blame/b_bosserenpaix.wav");
+			break;
+		case 1:
+			sprintf(son, "voix/macons/blame/b_bossertranquille.wav");
+			break;
+		case 2:
+			sprintf(son, "voix/macons/blame/b_enfoire.wav");
+			break;
+		case 3:
+			sprintf(son, "voix/macons/blame/b_etmerde.wav");
+			break;
+		case 4:
+			sprintf(son, "voix/macons/blame/b_pasjuste.wav");
+			break;
+		case 5:
+			sprintf(son, "voix/macons/blame/b_petecouilles.wav");
+			break;
+		case 6:
+			sprintf(son, "voix/macons/blame/b_raslebol.wav");
+			break;
+		case 7:
+			sprintf(son, "voix/macons/blame/b_rooh.wav");
+			break;
+		case 8:
+			sprintf(son, "voix/macons/blame/b_salaud.wav");
+			break;
+	}
+	EMIT_SOUND(ENT(pVictim->pev),CHAN_VOICE,son,1,ATTN_NORM);
+	
+	if (pVictim->m_iAlcool == 0)
+	{ //si le macon n'a pas une seule goutte d'alcool ds le sang (rare)
+		i = RANDOM_LONG(0,4);
+		switch (i)
+		{
+			case 0:
+				sprintf(son, "voix/inspecteurs/blame/1deplus.wav");
+				break;
+			case 1:
+				sprintf(son, "voix/inspecteurs/blame/catapprendra.wav");
+				break;
+			case 2:
+				sprintf(son, "voix/inspecteurs/blame/chenapant.wav");
+				break;
+			case 3:
+				sprintf(son, "voix/inspecteurs/blame/--crapy_sound--.wav");
+				break;
+			case 4:
+				sprintf(son, "voix/inspecteurs/blame/retournebosse.wav");
+				break;
+		}
+		
+	} else { // si le macon a de l'alcool dans le sang (commun)
+		i = RANDOM_LONG(0,5);
+		switch (i)
+		{
+			case 0:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/8grammes7.wav");
+				break;
+			case 1:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/alcoolique.wav");
+				break;
+			case 2:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/article51.wav");
+				break;
+			case 3:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/etatdebriete.wav");
+				break;
+			case 4:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/lefrippon.wav");
+				break;
+			case 5:
+				sprintf(son, "voix/inspecteurs/blamemaconbourre/lesouvriersboiventtrop.wav");
+				break;
+		}
+	}
+	
+	EMIT_SOUND(ENT(pAttacker->pev),CHAN_VOICE,son,1,ATTN_NORM);
+	
+	pVictim->AlreadyBlame = 1;
+	
+	MESSAGE_BEGIN( MSG_ALL, gmsgDeathMsg );
+	WRITE_BYTE( ENTINDEX(pAttacker->edict()) );						// the killer
+	WRITE_BYTE( ENTINDEX(pVictim->edict()) );		// the victim
+	WRITE_STRING( "carnet" );		// what they were killed by (should this be a string?)
+	MESSAGE_END();
+	
+	//SQLBlame (pAttacker,pVictim);
+	
+	int nbblame, nbmacon;
+	nbblame=0;
+	nbmacon=0;
+	for (i = 1;i<= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+		if ( pPlayer2 )
+		{
+			CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+			if (pPlayer3->m_iTeam == 1 || pPlayer3->m_iTeam == 2 /*|| pPlayer3->m_iTeam == 3*/)
+			{
+				nbmacon++;
+				if (pPlayer3->AlreadyBlame==1)
+				{
+					nbblame++;
+				}
+			}
+			
+		}}
+	
+	MESSAGE_BEGIN ( MSG_ALL, gmsgTime);
+	WRITE_SHORT ( 4 );
+	WRITE_BYTE ( nbmacon );
+	WRITE_BYTE ( nbblame );
+	MESSAGE_END();
+	
+	if (nbblame == nbmacon) // tous les macon ont été blamé 
+	{
+		pAttacker->AddPoints(REWARD_BLAMEALL, 1 );
+		for (int i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			if (pPlayer)
+			{
+				UTIL_MessageEffect(pPlayer,"Les inspecteurs remportent le round",1,-1,-1,0,Vector(255,255,50),255,Vector(0,0,0),0,1,1,1,0);
+				EMIT_SOUND(ENT(pPlayer->pev),CHAN_VOICE,"voix/commentaires/inspecteurs_gagnent/inspecteurs_gagnent.wav",1,ATTN_NORM);
+				CBasePlayer *pPlayer2 = (CBasePlayer*)pPlayer;
+				pPlayer2->AlreadyBlame = 0;
+			}
+		}
+		ResetAvancement();
+	}
+	
+	//ALERT(at_console,"alpha5 : blame : %i total : %i\n",nbblame,nbmacon);
+	pVictim->Blame();
+}
 
 void CBasePlayer :: Pain( void )
 {
@@ -442,6 +667,59 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 
 int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
+	if (!NextPainComment || NextPainComment <= gpGlobals->time)
+	{
+		char son[128];
+		int i;
+		i = RANDOM_LONG(0,38); // 33,333333% de chance d'avoir un commentaire de souffrance
+		
+		switch (i)
+		{
+			case 0:
+				sprintf(son, "voix/macons/perdvie/pv_aye.wav");
+				break;
+			case 1:
+				sprintf(son, "voix/macons/perdvie/pv_bordel.wav");
+				break;
+			case 2:
+				sprintf(son, "voix/macons/perdvie/pv_faitmal.wav");
+				break;
+			case 3:
+				sprintf(son, "voix/macons/perdvie/pv_manquaitplusqueca.wav");
+				break;
+			case 4:
+				sprintf(son, "voix/macons/perdvie/pv_mercurochrome.wav");
+				break;
+			case 5:
+				sprintf(son, "voix/macons/perdvie/pv_merde.wav");
+				break;
+			case 6:
+				sprintf(son, "voix/macons/perdvie/pv_ouaille.wav");
+				break;
+			case 7:
+				sprintf(son, "voix/macons/perdvie/pv_ouille.wav");
+				break;
+			case 8:
+				sprintf(son, "voix/macons/perdvie/pv_putaing2.wav");
+				break;
+			case 9:
+				sprintf(son, "voix/macons/perdvie/pv_putaing.wav");
+				break;
+			case 10:
+				sprintf(son, "voix/macons/perdvie/pv_saloperie.wav");
+				break;
+			case 11:
+				sprintf(son, "voix/macons/perdvie/pv_souffre.wav");
+				break;
+			case 12:
+				sprintf(son, "voix/macons/perdvie/pv_tropvieux.wav");
+				break;
+		}
+		EMIT_SOUND(ENT(pev),CHAN_VOICE,son,1,ATTN_NORM);
+		
+		NextPainComment = gpGlobals->time + 5.0; // prochain dans 5 secondes
+	}
+	
 	// have suit diagnose the problem - ie: report damage type
 	int bitsDamage = bitsDamageType;
 	int ffound = TRUE;
@@ -469,6 +747,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 
 	
 	CBaseEntity *pAttacker = CBaseEntity::Instance(pevAttacker);
+	CBaseEntity *pInflictor = CBaseEntity::Instance(pevInflictor);
 
 	if ( !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
 	{
@@ -668,7 +947,9 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 			else
 				SetSuitUpdate("!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN);	// health dropping
 		}
-
+	
+	g_pGameRules->SetSpeed(this);
+	
 	return fTookDamage;
 }
 
@@ -804,6 +1085,100 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	RemoveAllItems( TRUE );// now strip off everything that wasn't handled by the code above.
 }
 
+void CBasePlayer::BecomeKO(int type)
+{
+	// c'est la gym
+	if (!IsChaos) // si il est deja KO , on est pas mechant 
+	{
+		//ALERT(at_console,"ko = %f\n",CVAR_GET_FLOAT("mp_kotime"));
+		KOType=type;
+		EnableControl (false); // 1 on bloque
+		UTIL_ScreenFade(this, Vector (20,20,20),3,CVAR_GET_FLOAT("mp_kotime") -3,200,FFADE_OUT | FFADE_MODULATE); // 2 il fait nuit ?? 
+		//SetAnimation( PLAYER_DIE ); // trois anim
+		m_NbKO++; // on augmente d'un chaos :] t'ora moins de vie et ta ka pas te battre avec une truelle ! na (cf : prethink() )
+		m_flPlusKO = gpGlobals->time + CVAR_GET_FLOAT("mp_kotime"); // 10 seconde pour l'instant , variable ensuite en fct de la map !
+		m_flWakeUp = gpGlobals->time +1;
+		IsChaos=1;
+		m_iHasParpaing = 0;
+		RemoveAllItems( false );
+		
+		if (m_iTeam==INSPECTEUR) //si on est un inspecteur
+		{
+			GiveNamedItem ("weapon_sifflet");
+			GiveNamedItem ("weapon_carnet");
+		} else {
+			GiveNamedItem ("weapon_truelle");
+		}
+	}
+}
+
+void CBasePlayer::Cite()
+{
+	//douanier>MOUAHAHHAHAHAHAH j'adore !
+	char msg[128];
+	int i;
+	i = RANDOM_LONG(0,17);
+	switch (i)
+	{
+		case 0:
+			sprintf(msg, "<piGfucKer> www.danstoncul.lulu\n");
+			break;
+		case 1:
+			sprintf(msg, "<douanier007> je sais pas comment il fait mais butter torche ses maps en un week end\n");
+			break;
+		case 2:
+			sprintf(msg, "<quark> bOb? tu veut tjs pas me donner une certaine alpha? \n<Bob_le_Pointu> nan\n");
+			break;
+		case 3:
+			sprintf(msg, "<douanier007> j'ai mailler 2K j'ai pas de reponse \n<Butterfly> on va le fritter des qu'il revient promis\n");
+			break;
+		case 4:
+			sprintf(msg, "<Butterfly> Ha non ! moa j'trouve que BeLiEvE il a fait un super boulot avec...son...enfin le machin la....koi deja...heu....\n");
+			break;
+		case 5:
+			sprintf(msg, "<Bob_le_Pointu> je ne sais pas <= disiz the ansoueur\n");
+			break;
+		case 6:
+			sprintf(msg, "<Shadow_aok> ET MEEEEEEEEEEEEEEEEEEEEERDE\n");
+			break;
+		case 7:
+			sprintf(msg, "<Butterfly> YOU CAN Increase Your PENIS SIZE Naturally!\n");
+			break;
+		case 8:
+			sprintf(msg, "<Bob_le_Pointu> Oceane, t viree. Bob_le_Pointu, t vire. \n<[2k]> et je peux etre vire moi aussi ?\n");
+			break;
+		case 9:
+			sprintf(msg, "<douanier007> les changements : tu transforme hl-parpaing en une ligne de lingerie c ca ?\n");
+			break;
+		case 10:
+			sprintf(msg, "<Bob_le_Pointu> hum...une quincaillerie qui ferait du recel de parpaing ?\n");
+			break;
+		case 11:
+			sprintf(msg, "<ZycloN_B> j'espere ki me reste du nutella\n");
+			break;
+		case 12:
+			sprintf(msg, "<piG[aWaY]> ca me fait mal au coeur de voir des gentils animaux mourir dans le dessins animes...\n");
+			break;
+		case 13:
+			sprintf(msg, "<ZycloN_B> ou encor kes ki est jaune et ki traverse les murs ?\n <Bob_le_Pointu> un truc jaune qui a tape /noclip\n");
+			break;
+		case 14:
+			sprintf(msg, "<Vince> internet c est une porte ouverte a la solitude corporelle !\n");
+			break;
+		case 15:
+			sprintf(msg, "* @butterfly prends xander135 en levrette pekinoise (with a little chien on the top) !\n");
+			break;
+		case 16:
+			sprintf(msg, "<douanier007> Je te fais un truc en programation orienté parpaing\n <+MiK> oublie pas de lier tes fonctions avec du ciment sinon c pas optimisé\n");
+			break;
+		case 17:
+			sprintf(msg, "<> Je te fais un truc en programation orienté parpaing\n <+MiK> oublie pas de lier tes fonctions avec du ciment sinon c pas optimisé\n");
+			break;
+	}
+	
+	ClientPrint(pev, HUD_PRINTTALK, msg);
+}
+
 void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 {
 	if (m_pActiveItem)
@@ -866,7 +1241,40 @@ entvars_t *g_pevLastInflictor;  // Set in combat.cpp.  Used to pass the damage i
 
 void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 {
+	//(hlp)
 	CSound *pSound;
+	
+	m_hActivator = CBaseEntity::Instance( pevAttacker );
+	
+	//007 : ON NE TUE PAS UN INSPECTEUR
+	if (m_hActivator->IsPlayer() && this->m_iTeam == INSPECTEUR)
+	{
+		//Un inspecteur tué par un player, celui ci est donc forcement un maçon
+		//Salop de maçon...
+		ClientPrint(this->pev, HUD_PRINTTALK, "Vous avez pris un bon gros parpaing dans la tronche !");
+		TraceResult tr = UTIL_GetGlobalTrace( );
+		m_hActivator->TakeDamage (m_hActivator->pev,m_hActivator->pev,1000,DMG_GENERIC);
+		ClientPrint(pevAttacker, HUD_PRINTTALK, "NE TAPEZ PAS SUR LES INSPECTEURS (-20 pts)");
+		m_hActivator->AddPoints(-20,1);
+	}
+	
+	if (!m_hActivator->IsPlayer()) // si le tueur est un player , c un KO , pis on respawn o même endroit , si le tueur n'est pas un player (monde, ascenseur) on respawn o debut
+	{
+		BecomeKO(2);//douanier : ca plante en Ko(2) et j'ai la flemme de reprendre ton code donc tu te demerdes !
+		pev->solid = SOLID_NOT; // le mec devient non solid pour pas de blem avec les ascenseurs etc
+	} else
+		BecomeKO(1);
+	
+	m_iAlcool=0; // reset l'alcool (tres mauvais pour la santé)
+	MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,pev);
+	WRITE_SHORT(0); //on uptdate l'état d'étililisme
+	MESSAGE_END();
+	
+	m_iHasParpaing=0; // au cas ou !²
+	m_iClientHealth = 1;
+	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
+	WRITE_BYTE( m_iClientHealth );
+	MESSAGE_END();
 
 	// Holster weapon immediately, to allow it to cleanup
 	if ( m_pActiveItem )
@@ -888,9 +1296,11 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 			pSound->Reset();
 		}
 	}
-
+	
+	IsDefusing = false;
 	SetAnimation( PLAYER_DIE );
 	
+	/*
 	m_iRespawnFrames = 0;
 
 	pev->modelindex = g_ulModelIndexPlayer;    // don't use eyes
@@ -903,12 +1313,13 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	// clear out the suit message cache so we don't keep chattering
 	SetSuitUpdate(NULL, FALSE, 0);
-
+	
 	// send "health" update message to zero
 	m_iClientHealth = 0;
 	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 		WRITE_BYTE( m_iClientHealth );
 	MESSAGE_END();
+	*/
 
 	// Tell Ammo Hud that the player is dead
 	MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
@@ -928,6 +1339,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
 	// UTIL_ScreenFade( edict(), Vector(128,0,0), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
 
+	/*
 	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS )
 	{
 		pev->solid			= SOLID_NOT;
@@ -935,32 +1347,43 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->effects |= EF_NODRAW;
 		return;
 	}
+	*/
+	// (fab) ^^ on enleve les morceaux :]
 
 	DeathSound();
 	
 	pev->angles.x = 0;
 	pev->angles.z = 0;
 
+	/*
 	SetThink(&CBasePlayer::PlayerDeathThink);
 	pev->nextthink = gpGlobals->time + 0.1;
+	*/
 }
 
 
 // Set the activity based on an event or current state
 void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 {
+	/*
+	if (playerAnim==PLAYER_DIE)
+		ALERT( at_console, "Anim : %i\n",playerAnim);
+	*/
+	
 	int animDesired;
 	float speed;
 	char szAnim[64];
 
 	speed = pev->velocity.Length2D();
 
-	if (pev->flags & FL_FROZEN)
+	/*
+	//if (pev->flags & FL_FROZEN)
+	if (pev->flags & FL_FROZEN && m_Activity!=PLAYER_DIE)
 	{
 		speed = 0;
 		playerAnim = PLAYER_IDLE;
 	}
-
+	*/
 	switch (playerAnim) 
 	{
 	case PLAYER_JUMP:
@@ -977,6 +1400,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		break;
 
 	case PLAYER_ATTACK1:	
+		//	ALERT( at_console, "Attaque\n");
 		switch( m_Activity )
 		{
 		case ACT_HOVER:
@@ -1022,6 +1446,46 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		if ( m_Activity == m_IdealActivity)
 			return;
 		m_Activity = m_IdealActivity;
+			
+		//Douanier et xander main dans la main (et merci à Spokup aussi)
+		if(m_pClientActiveItem->pev->classname == MAKE_STRING("weapon_truelle"))
+		{
+			if ( FBitSet( pev->flags, FL_DUCKING ) ) // crouching
+				animDesired = Truelle_Shoot_Crouch;
+			else
+			{
+				animDesired = Truelle_Shoot;
+			}
+		}
+		else if(m_pClientActiveItem->pev->classname == MAKE_STRING("weapon_parpaing"))
+		{
+			if ( FBitSet( pev->flags, FL_DUCKING ) ) // crouching
+				animDesired = Parpaing_Shoot_Crouch;
+				//animDesired = MAKE_STRING("crouch_shoot_parpaing");
+			else
+			{
+				animDesired = Parpaing_Shoot;
+				//animDesired = MAKE_STRING("ref_shoot_parpaing");
+			}
+		}
+		else if(m_pClientActiveItem->pev->classname == MAKE_STRING("weapon_carnet"))
+		{
+			if ( FBitSet( pev->flags, FL_DUCKING ) ) // crouching
+				animDesired = Carnet_Shoot_Crouch;
+				//animDesired = MAKE_STRING("crouch_shoot_carnet");
+			else
+				animDesired = Carnet_Shoot;
+				//animDesired = MAKE_STRING("ref_shoot_carnet");
+		}
+		else if(m_pClientActiveItem->pev->classname == MAKE_STRING("weapon_sifflet"))
+		{
+			if ( FBitSet( pev->flags, FL_DUCKING ) ) // crouching
+				animDesired = Sifflet_Shoot_Crouch;
+				//	animDesired = MAKE_STRING("crouch_shoot_sifflet");
+			else
+				animDesired = Sifflet_Shoot;
+				//	animDesired = MAKE_STRING("ref_shoot_sifflet");
+		}
 
 		animDesired = LookupActivity( m_Activity );
 		// Already using the desired animation?
@@ -1088,7 +1552,8 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		}
 		else
 		{
-			pev->gaitsequence	= LookupActivity( ACT_CROUCH );
+			//pev->gaitsequence	= LookupActivity( ACT_CROUCH );
+			pev->gaitsequence = 6;
 		}
 	}
 	else if ( speed > 220 )
@@ -1097,12 +1562,13 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	}
 	else if (speed > 0)
 	{
+		//ALERT(at_console,"anim : %i \n", LookupActivity( ACT_RUN ));
 		pev->gaitsequence	= LookupActivity( ACT_WALK );
 	}
 	else
 	{
-		// pev->gaitsequence	= LookupActivity( ACT_WALK );
-		pev->gaitsequence	= LookupSequence( "deep_idle" );
+		pev->gaitsequence	= LookupActivity( ACT_WALK );
+		//pev->gaitsequence	= LookupSequence( "deep_idle" );
 	}
 
 
@@ -1265,6 +1731,21 @@ BOOL CBasePlayer::IsOnLadder( void )
 	return ( pev->movetype == MOVETYPE_FLY );
 }
 
+void CBasePlayer::PrePlayerKOThink(void)
+{
+	/*
+	TraceResult tr;
+	CopyToBodyQue( pev );
+	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, 100 ), ignore_monsters, edict(), &tr );
+	StartObserver( tr.vecEndPos, UTIL_VecToAngles( tr.vecEndPos - pev->origin  ) );
+	*/
+}
+
+void CBasePlayer::PlayerKOThink(void)
+{
+	ALERT(at_console, "playerKOthink\n");
+}
+
 void CBasePlayer::PlayerDeathThink(void)
 {
 	float flForward;
@@ -1284,7 +1765,45 @@ void CBasePlayer::PlayerDeathThink(void)
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
 		// player class sometimes is freed. It's safer to manipulate the weapons once we know
 		// we aren't calling into any of their code anymore through the player pointer.
-		PackDeadPlayerItems();
+		//PackDeadPlayerItems();
+		
+		// (fab) ^^ pas de pack avec les arme du mec quand il meurt.
+		// (fab) ah si , si il avait un parpaing ! 
+		// rendons à la nature ce ki lui apparteint.
+		if (m_iHasParpaing)
+		{
+			// (fab) a faire (/me trop fleimard...) //BLP: SalÖw: ;>  // (fab) huhuhu
+			if (m_iHasParpaing == 1 && PoseParpaing == false)
+			{
+				CParpaing *pParpaing = GetClassPtr((CParpaing *)NULL );
+				pParpaing->pev->classname = MAKE_STRING("weapon_parpaing");
+				pParpaing->Spawn();
+				UTIL_SetSize(pParpaing->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+				pParpaing->pev->origin = pev->origin;
+				pParpaing->pev->angles = pev->angles;
+				SelectItem ("weapon_parpaing");
+				RemovePlayerItem(m_pActiveItem);
+				m_iHasParpaing = 0;
+				pev->weapons &= ~(1<<16);
+				
+				UTIL_MessageEffect(this,"Vous etes trop blesse pour transporter un parpaing...\n",1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);
+			}
+			else if (m_iHasParpaing == 2)
+			{
+				CBombParpaingWeapon *pBombParpaingWeapon = GetClassPtr((CBombParpaingWeapon *)NULL );
+				pBombParpaingWeapon->pev->classname = MAKE_STRING("weapon_bombparpaing");
+				pBombParpaingWeapon->Spawn();
+				UTIL_SetSize(pBombParpaingWeapon->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+				pBombParpaingWeapon->pev->origin = pev->origin;
+				pBombParpaingWeapon->pev->angles = pev->angles;
+				SelectItem ("weapon_bombparpaing");
+				RemovePlayerItem(m_pActiveItem);
+				m_iHasParpaing = 0;
+				pev->weapons &= ~(1<<16);
+				
+				UTIL_MessageEffect(this,"Vous etes trop blesse pour transporter une Bombe...\n",1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);
+			}
+		}
 	}
 
 
@@ -1330,7 +1849,8 @@ void CBasePlayer::PlayerDeathThink(void)
 // if the player has been dead for one second longer than allowed by forcerespawn, 
 // forcerespawn isn't on. Send the player off to an intermission camera until they 
 // choose to respawn.
-	if ( g_pGameRules->IsMultiplayer() && ( gpGlobals->time > (m_fDeadTime + 6) ) && !(m_afPhysicsFlags & PFLAG_OBSERVER) )
+	//if ( g_pGameRules->IsMultiplayer() && ( gpGlobals->time > (m_fDeadTime + 6) ) && !(m_afPhysicsFlags & PFLAG_OBSERVER) )
+	if ( g_pGameRules->IsMultiplayer() && !(m_afPhysicsFlags & PFLAG_OBSERVER) )
 	{
 		// go to dead camera. 
 		StartDeathCam();
@@ -1389,15 +1909,18 @@ void CBasePlayer::StartDeathCam( void )
 
 		CopyToBodyQue( pev );
 
+		/*
 		UTIL_SetOrigin( pev, pSpot->v.origin );
 		pev->angles = pev->v_angle = pSpot->v.v_angle;
+		*/
 	}
 	else
 	{
 		// no intermission spot. Push them up in the air, looking down at their corpse
 		TraceResult tr;
 		CopyToBodyQue( pev );
-		UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, 128 ), ignore_monsters, edict(), &tr );
+		//UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, 128 ), ignore_monsters, edict(), &tr );
+		UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, 10 ), ignore_monsters, edict(), &tr );
 
 		UTIL_SetOrigin( pev, tr.vecEndPos );
 		pev->angles = pev->v_angle = UTIL_VecToAngles( tr.vecEndPos - pev->origin  );
@@ -1412,6 +1935,8 @@ void CBasePlayer::StartDeathCam( void )
 	pev->takedamage = DAMAGE_NO;
 	pev->movetype = MOVETYPE_NONE;
 	pev->modelindex = 0;
+	
+	RemoveAllItems( TRUE );
 }
 
 void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
@@ -1497,6 +2022,9 @@ void CBasePlayer::PlayerUse ( void )
 	// Was use pressed or released?
 	if ( ! ((pev->button | m_afButtonPressed | m_afButtonReleased) & IN_USE) )
 		return;
+	
+	if (m_iTeam == SPECTATEUR)
+		return;
 
 	// Hit Use on a train?
 	if ( m_afButtonPressed & IN_USE )
@@ -1531,6 +2059,42 @@ void CBasePlayer::PlayerUse ( void )
 				}
 			}
 		}
+	}
+	
+	if((m_pActiveItem) && (m_pActiveItem->m_iId == WEAPON_BOMBPARPAING))
+	{
+#ifndef CLIENT_DLL
+		
+		CBombParpaingWeapon *pBombParpaingWeapon = (CBombParpaingWeapon*)m_pActiveItem;
+		ClientPrint(pev, HUD_PRINTCENTER, UTIL_VarArgs("%i\n", pBombParpaingWeapon->m_iPoseAvc));
+		
+		if ( m_afButtonReleased & IN_USE )
+		{
+			pBombParpaingWeapon->m_iPoseAvc = 0;
+			return;
+		}
+		
+		if (pBombParpaingWeapon->m_iPoseAvc < 200)
+		{
+			pBombParpaingWeapon->m_iPoseAvc += 1;
+			return;
+		}
+		CBombParpaing *pBombParpaing = GetClassPtr((CBombParpaing *)NULL );
+		UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+		pBombParpaing->pOwner = this;
+		pBombParpaing->pev->origin = pev->origin + gpGlobals->v_forward * 64;
+		pBombParpaing->pev->classname = MAKE_STRING("item_bombparpaing");
+		pBombParpaing->pev->velocity = gpGlobals->v_forward * 100;
+		pBombParpaing->Spawn();
+		m_iHasParpaing=0;
+		m_pActiveItem->DestroyItem();
+		pev->weapons &= ~(1<<20);
+		SelectItem ("weapon_truelle");
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Bomb has been planted");
+		if ((CVAR_GET_FLOAT("mp_derrick"))  && (RANDOM_LONG(1, DERRICK_PROB) == 1))
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Derrick]: Rho le saligaud ! Tous aux abris !\n");
+#endif
+		return;
 	}
 
 	CBaseEntity *pObject = NULL;
@@ -1684,7 +2248,12 @@ void CBasePlayer::Duck( )
 //
 int  CBasePlayer::Classify ( void )
 {
-	return CLASS_PLAYER;
+	//return CLASS_PLAYER;
+	
+	if (m_iTeam == SPECTATEUR)
+		return CLASS_NONE;
+	else
+		return CLASS_PLAYER;
 }
 
 
@@ -1846,8 +2415,547 @@ void CBasePlayer::UpdateStatusBar()
 #define	CLIMB_PUNCH_X			-7  // how far to 'punch' client X axis when climbing
 #define CLIMB_PUNCH_Z			7	// how far to 'punch' client Z axis when climbing
 
+
+
+enum parpaing_e {
+	PARPAING_IDLE = 0,
+	PARPAING_IDLE2,
+	PARPAING_DRAW,
+	PARPAING_ATTACK1,
+	PARPAING_ATTACK2,
+	PARPAING_POSAGE
+};
+
+void CBasePlayer::StartDefuse(void)
+{
+	MESSAGE_BEGIN( MSG_ONE, gmsgDefuse, NULL, pev );
+	WRITE_BYTE(1);
+	MESSAGE_END();
+}
+
+void CBasePlayer::StopDefuse(void)
+{
+	MESSAGE_BEGIN( MSG_ONE, gmsgDefuse, NULL, pev );
+	WRITE_BYTE(0);
+	MESSAGE_END();
+}
+
+#define PI        (3.14159265358979323846264338327950288f)
+
+CBaseEntity *FindEntityForward( CBaseEntity *pMe ) // En provenance du bas
+{
+	TraceResult tr;
+	
+	UTIL_MakeVectors(pMe->pev->v_angle);
+	UTIL_TraceLine(pMe->pev->origin + pMe->pev->view_ofs,pMe->pev->origin + pMe->pev->view_ofs + gpGlobals->v_forward * 8192,dont_ignore_monsters, pMe->edict(), &tr );
+	if ( tr.flFraction != 1.0 && !FNullEnt( tr.pHit) )
+	{
+		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+		return pHit;
+	}
+	return NULL;
+}
+
+void CBasePlayer::ChangeSpawnPoint (void)
+{
+//cette fonction permet de choisire le point de spawn voullu.
+//Spawn_Maison 
+// ou
+//Spawn_Place 
+	if (this->SpawnPoint == Spawn_Maison)
+	{
+		this->SpawnPoint = Spawn_Place;
+		return;
+	}
+	else if (this->SpawnPoint == Spawn_Place)
+	{
+		this->SpawnPoint = Spawn_Maison;
+		return;
+	}
+}
+
+
 void CBasePlayer::PreThink(void)
 {
+	if (this->CheckTime <= gpGlobals->time)
+	{
+		//007 Detectons qui est devant dedieu !
+		TraceResult tr;
+		
+		Vector anglesAim = pev->v_angle + pev->punchangle;
+		UTIL_MakeVectors( anglesAim );
+		Vector vecSrc = GetGunPosition( ) - gpGlobals->v_up * 2;
+		Vector vecDir = gpGlobals->v_forward;
+		
+		UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, edict(), &tr);
+		
+		CBaseEntity *point = CBaseEntity::Instance(tr.pHit);
+		
+		char PrintOutText[401];
+		if (FClassnameIs( tr.pHit, "player" ) )
+		{
+			sprintf(PrintOutText, "## Joueur: %s ##\n## Equipe: %s ##\n ",STRING(tr.pHit->v.netname),point->TeamID());
+			ClientPrint(this->pev, HUD_PRINTCENTER, PrintOutText);
+		}
+		else if (FClassnameIs( tr.pHit, "monster_megret" ) )
+		{
+			ClientPrint(this->pev, HUD_PRINTCENTER, "## Saloperie de Megret !##");
+		}
+		
+		this->CheckTime = gpGlobals->time + 1 ; //on vérifie tout les 1 secondes. A tester
+	}
+	
+	if (m_iTeam==INSPECTEUR) //si on est un inspecteur
+	{
+		CBaseEntity *pEntity;
+		pEntity = FindEntityForward( this );
+		if (pEntity)
+		{
+			if (pEntity->IsPlayer())
+			{
+				CBasePlayer *pPlayer2 = (CBasePlayer*)pEntity;
+				if ((pPlayer2->m_iTeam == MACON1 || pPlayer2->m_iTeam == MACON2) && NextCrossComment <= gpGlobals->time)
+				{
+					char son[128];
+					int i;
+					i = RANDOM_LONG(0,8); // poum
+					switch (i)
+					{
+						case 0:
+							sprintf(son, "voix/inspecteurs/croisemacon/approchez.wav");
+							break;
+						case 1:
+							sprintf(son, "voix/inspecteurs/croisemacon/controle.wav");
+							break;
+						case 2:
+							sprintf(son, "voix/inspecteurs/croisemacon/demandearreter.wav");
+							break;
+						case 3:
+							sprintf(son, "voix/inspecteurs/croisemacon/instant.wav");
+							break;
+						case 4:
+							sprintf(son, "voix/inspecteurs/croisemacon/montrepapiers2.wav");
+							break;
+						case 5:
+							sprintf(son, "voix/inspecteurs/croisemacon/montrepapiers.wav");
+							break;
+						case 6:
+							sprintf(son, "voix/inspecteurs/croisemacon/sentalcool.wav");
+							break;
+						case 7:
+							sprintf(son, "voix/inspecteurs/croisemacon/svparretezvous.wav");
+							break;
+						case 8:
+							sprintf(son, "voix/inspecteurs/croisemacon/vospapiers.wav");
+							break;
+					}
+					EMIT_SOUND(ENT(pev),CHAN_VOICE,son,1,ATTN_NORM);
+					NextCrossComment = gpGlobals->time + 7.0;
+				}
+			}
+		}
+	}
+	
+	// tests sympa
+	/*
+	UTIL_MakeVectors(pev->v_angle);
+	Vector front;
+	Vector view;
+	front = pev->origin + pev->view_ofs + gpGlobals->v_forward * 8192;
+
+	CBaseEntity *mur = UTIL_FindEntityByClassname(NULL, "mur1");
+
+
+	view = UTIL_VecToAngles( front - mur->pev->origin );
+
+	int Distance = int((pev->origin - mur->pev->origin).Length());
+	int hauteur = Distance * tan((view.x /(360/(2*PI))));
+	hauteur=hauteur*-1;
+
+	ALERT(at_console,"h : %i view.x : %f\n",hauteur,view.x );// autour de moi a plat
+	*/
+	
+	/*
+	TraceResult tr;
+
+	UTIL_TraceLine(pev->origin + pMe->pev->view_ofs,pMe->pev->origin + pMe->pev->view_ofs + gpGlobals->v_forward * 8192,dont_ignore_monsters, pMe->edict(), &tr );
+	if ( tr.flFraction != 1.0 && !FNullEnt( tr.pHit) )
+	{
+		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+		return pHit;
+	}
+	*/
+	
+	
+	//CBaseEntity *mur = UTIL_FindEntityByClassname(NULL, "mur1");
+	
+	//ALERT(at_console,"angl : %f %f %f\n", (view.x) , view.y,view.z );// autour de moi a plat
+	//ALERT(at_console,"angl : %f %f %f\n", view.x   , view.y,view.z);// autour de moi a plat
+	//ALERT(at_console,"angl : %f %f\n",    floor(pev->v_angle.x),floor(pev->v_angle.y));// autour de moi a plat
+	
+	// code pour l'anim du saut de l'ange !
+	/*
+	TraceResult trace;
+	UTIL_TraceLine( pev->origin, pev->origin + gpGlobals->v_up*-1, ignore_monsters, edict(), &trace );
+	if ( trace.flFraction < 1.0 )
+	{
+		ALERT(at_console,"dist:%f\n",(trace.vecEndPos - pev->origin).Length());
+	}
+	*/
+	
+	//Douanier007 
+	//Pas de panique je fais que passer
+	
+	if (!IsDefusing)
+	{
+		if (DefuseDraw)
+		{
+			StopDefuse();
+			DefuseDraw = false;
+		}
+	}
+	if (IsDefusing)
+	{
+		if (!DefuseDraw)
+		{
+			StartDefuse();
+			DefuseDraw= true;
+		}
+	}
+	
+	CBaseEntity *pParpaingBoom=NULL;
+	pParpaingBoom = UTIL_FindEntityByClassname( NULL, "item_bombparpaing" );
+	
+	if (pParpaingBoom)
+	{
+		if(IsDefusing)
+		{
+			Vector Dist;
+			int distance;
+			
+			Dist[0]=pev->origin[0]-pParpaingBoom->pev->origin[0] ;
+			Dist[1]=pev->origin[1]-pParpaingBoom->pev->origin[1] ;
+			Dist[2]=pev->origin[2]-pParpaingBoom->pev->origin[2] ;
+			
+			distance = sqrt(Dist[0]*Dist[0]+Dist[1]*Dist[1]+Dist[2]*Dist[2]);
+			//char pouet[60];
+			//sprintf( pouet, "%i", distance );
+			//ClientPrint(pev, HUD_PRINTTALK, pouet);
+			
+			if (distance > 40)
+			{
+				GetClassPtr((CBombParpaing *)pParpaingBoom->pev)->StopUse (this);
+			}
+			
+			if (!(pev->button & (IN_USE )))
+			{
+				GetClassPtr((CBombParpaing *)pParpaingBoom->pev)->StopUse (this);
+			}
+		}
+	}
+	
+	//BLP : T'avais du temps à perdre Fab ? M'enfin, bon boulot. ChÄpÖw!
+	// fab : tu parles de la pose du parpaing ? quand je l'ai fait gt assez motivé , ct expédié en quelque tps
+	// en revanche rapidement faut ke je fasse des verif si le joueur regarde a peu pres le mur pour ke ce soit realiste.
+	// pose du parpaing.
+	
+	/*
+	if (pev->button & IN_USE)
+		ALERT (at_console,"|");
+	*/
+	
+	if (PoseParpaing && this->IsAlive())
+	{
+		if (gpGlobals->time>=ParpaingTime && ParpaingTime!=0)
+		{
+			// (fab) jessaye de foutre l'anim du posage de parpaing
+			// on pars du principe que l'arme actuel c le parpaing (dailleur pas le choix)
+			
+			//(fab) euh nan enfet on va pas y touché pour l'instant, sinon ca fé un pur plantage que même mon
+			//PC n'arrive pas à s'en remettre ! (c'est pour dire !)
+			/*if (m_pActiveItem && m_pActiveItem->m_iId == WEAPON_PARPAING)
+			GetClassPtr((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim (5);*/
+			//SendWeaponAnim(5);  // PARPAING_POSAGE = anim 5
+			
+			MESSAGE_BEGIN( MSG_ONE, gmsgParpaing, NULL, pev );
+			WRITE_SHORT(2); //fin
+			MESSAGE_END();
+			
+			PoseParpaing=0;
+			ParpaingTime=0;
+			
+			CBaseEntity *pMur=NULL;
+			if (m_iTeam==1)
+			{
+				pMur = UTIL_FindEntityByClassname( NULL, "mur1" );
+				GetClassPtr((CMur *)pMur->pev)->Pose (this);
+			}
+			else
+			{
+				pMur = UTIL_FindEntityByClassname( NULL, "mur2" );
+				GetClassPtr((CMur *)pMur->pev)->Pose (this);
+			}
+			
+			char son[128];
+			int i;
+			i = RANDOM_LONG(0,7);
+			switch (i)
+			{
+				case 0:
+					sprintf(son, "voix/macons/poseparpaing/ppp_allezhop.wav");
+					break;
+				case 1:
+					sprintf(son, "voix/macons/poseparpaing/ppp_bon.wav");
+					break;
+				case 2:
+					sprintf(son, "voix/macons/poseparpaing/ppp_fait.wav");
+					break;
+				case 3:
+					sprintf(son, "voix/macons/poseparpaing/ppp_undeplus.wav");
+					break;
+			}
+			EMIT_SOUND(ENT(pev),CHAN_VOICE,son,1,ATTN_NORM);
+		}
+		else
+		{
+			//if (pev->button & (IN_USE | IN_ATTACK) ) Désolé Fab, mais je pense que pour l'instant, l'attaque principale ne doit pas servir ici
+			if (pev->button & (IN_USE))
+			{
+				if (ParpaingTime==0)
+				{
+					ParpaingTime = gpGlobals->time + 3.0;
+					
+					if (m_pActiveItem->m_iId == WEAPON_PARPAING)
+						GetClassPtr((CParpaing *)m_pActiveItem->pev)->SendWeaponAnim(5);
+					
+					//ALERT (at_console,"pose\n");
+					MESSAGE_BEGIN( MSG_ONE, gmsgParpaing, NULL, pev );
+					WRITE_SHORT(1); // en cours de pose
+					MESSAGE_END();
+				}
+				// on verif la distance pour pas kil seloigne :]
+				int m_iDist;
+				CBaseEntity *pMur=NULL;
+				if (m_iTeam==1)
+				{
+					pMur = UTIL_FindEntityByClassname( NULL, "mur1" );
+					m_iDist = (pev->origin - pMur->pev->origin).Length();
+				}
+				else
+				{
+					pMur = UTIL_FindEntityByClassname( NULL, "mur2" );
+					m_iDist = (pev->origin - pMur->pev->origin).Length();
+				}
+				if (m_iDist>100)
+				{
+					//ALERT (at_console,"stopper\n");
+					MESSAGE_BEGIN( MSG_ONE, gmsgParpaing, NULL, pev );
+					WRITE_SHORT(3); // stopper
+					MESSAGE_END();
+					
+					if (m_pActiveItem->m_iId == WEAPON_PARPAING)
+						GetClassPtr((CParpaing *)m_pActiveItem->pev)->SendWeaponAnim(2);
+					
+					STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/pose_parpaing.wav" );
+					PoseParpaing=0;
+					ParpaingTime=0;
+				}
+				//ALERT (at_console,"dist:%i\n",m_iDist);
+			}
+			else
+			{
+				//ALERT (at_console,"stopper\n");
+				MESSAGE_BEGIN( MSG_ONE, gmsgParpaing, NULL, pev );
+				WRITE_SHORT(3); // stopper
+				MESSAGE_END();
+				
+				if (m_pActiveItem->m_iId == WEAPON_PARPAING)
+					GetClassPtr((CParpaing *)m_pActiveItem->pev)->SendWeaponAnim(2);
+				
+				STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/pose_parpaing.wav" );
+				PoseParpaing=0;
+				ParpaingTime=0;
+			}
+		}
+	}
+	
+	if (m_flPlusKO && m_flPlusKO!=0 && m_flPlusKO<=gpGlobals->time)
+	{
+		if (KOType==2)
+		{
+			edict_t* pentSpawnSpot = EntSelectSpawnPoint( this );
+			pev->origin = VARS(pentSpawnSpot)->origin ;
+			pev->angles = VARS(pentSpawnSpot)->angles;
+			pev->solid	= SOLID_SLIDEBOX;
+		}
+		
+		pev->view_ofs = g_vecZero;
+		pev->fixangle = TRUE;
+		
+		int vie = 100-(m_NbKO*10); //moins ke 100% en fct du nb de chaos successif.
+		if (vie<=15)
+			pev->health = 15;
+		else
+			pev->health = vie;
+		
+		m_pActiveItem->Deploy(); // reaffiche l'arme active
+		
+		pev->movetype		= MOVETYPE_WALK;
+		pev->deadflag		= DEAD_NO;
+		
+		EnableControl (true);
+		
+		m_flPlusKO=0;
+		IsChaos=0;
+		
+		//Bug résolu par BBk !
+		
+		UTIL_SetSize(pev, VEC_HULL_MIN, VEC_HULL_MAX);
+		pev->view_ofs = VEC_VIEW;
+		
+		g_pGameRules->SetSpeed(this);
+		
+		if (this->SpawnPoint == Spawn_Maison) {
+			//////////////////
+			m_iFOV = 90;
+			m_iHasParpaing = 0;
+			IsInBarArea = false;
+			// on update l'état de l'alcool coté client
+			m_iAlcool = 0;
+			MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,edict());
+			WRITE_SHORT(0 );
+			MESSAGE_END();
+			/*
+			pev->flags		   &= FL_PROXY;	// keep proxy flag sey by engine
+			pev->flags		   |= FL_CLIENT;
+			pev->air_finished	= gpGlobals->time + 12;
+			pev->dmg			= 2;				// initial water damage
+			pev->effects		= 0;
+			pev->deadflag		= DEAD_NO;
+			pev->dmg_take		= 0;
+			pev->dmg_save		= 0;
+			pev->friction		= 1.0;
+			pev->gravity		= 1.0;
+			m_bitsHUDDamage		= -1;
+			m_bitsDamageType	= 0;
+			m_afPhysicsFlags	= 0;
+			m_fLongJump			= FALSE;// no longjump module. 
+			ParpaingTime		= 0; //hlp
+			IsDefusing = false;
+			DefuseDraw = false;
+		
+			m_iFlashBattery = 99;
+			m_flFlashLightTime = 1; // force first message
+			g_pGameRules->SetSpeed(this);
+			// dont let uninitialized value here hurt the player
+			m_flFallVelocity = 0;
+		
+			g_pGameRules->SetDefaultPlayerTeam( this );
+		
+			m_pLastItem = NULL;
+			m_fInitHUD = TRUE;
+			m_iClientHideHUD = -1;  // force this to be recalculated
+			m_fWeapon = FALSE;
+			m_pClientActiveItem = NULL;
+			m_iClientBattery = -1;
+		
+			g_pGameRules->PlayerSpawn( this );
+			*/
+			
+			///////////////////
+			g_pGameRules->GetPlayerSpawnSpot( this );
+			
+			//this->Spawn();
+		}
+		
+		int nbblame,nbmacon,i;
+		nbblame=0;
+		nbmacon=0;
+		for (i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+			if ( pPlayer2 )
+			{
+				CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+				if (pPlayer3->m_iTeam == 1 || pPlayer3->m_iTeam == 2 /*|| pPlayer3->m_iTeam == 3*/)
+				{
+					nbmacon++;
+					if (pPlayer3->AlreadyBlame==1)
+					{
+						nbblame++;
+					}
+				}
+			}
+		}
+		
+		MESSAGE_BEGIN ( MSG_ALL, gmsgTime);
+		WRITE_SHORT ( 4 );
+		WRITE_BYTE ( nbmacon );
+		WRITE_BYTE ( nbblame );
+		MESSAGE_END();
+	}
+	
+	char msg[121];
+	char lieu[41];
+	
+	if (IsChaos && m_flWakeUp<=gpGlobals->time)
+	{
+		switch (this->SpawnPoint)
+		{
+			case Spawn_Place : sprintf(lieu,"ici");break;
+			case Spawn_Maison : sprintf(lieu,"dans votre camp");break;
+		}
+		
+		int left = m_flPlusKO-gpGlobals->time;
+		
+		//BBk ptite modif pour virrer le choi quand c'est le World qui tue le joueur
+		if (KOType==2)
+		{
+			this->SpawnPoint = Spawn_Maison;
+			sprintf(lieu,"dans votre camp");
+			
+			if (left>1)
+			{
+				sprintf(msg,"Reveil dans %i secondes\n Vous allez reaparaitre %s !",left,lieu);
+				ClientPrint(this->pev, HUD_PRINTCENTER,msg);
+			}
+			else
+			{
+				sprintf(msg,"Reveil dans %i seconde\n Vous allez reaparaitre %s !",left,lieu);
+				ClientPrint(this->pev, HUD_PRINTCENTER,msg);
+			}
+		} else {
+			if (left>1)
+			{
+				sprintf(msg,"Reveil dans %i secondes\n Vous allez reaparaitre %s !",left,lieu);
+				ClientPrint(this->pev, HUD_PRINTCENTER,msg);
+			}
+			else
+			{
+				sprintf(msg,"Reveil dans %i seconde\n Vous allez reaparaitre %s !",left,lieu);
+				ClientPrint(this->pev, HUD_PRINTCENTER,msg);
+			}
+		}
+		if (left==0)
+			UTIL_ScreenFade(this, Vector (20,20,20),3,1,200,FFADE_IN); // 2 il refait jour !
+		
+		m_flWakeUp = gpGlobals->time + 1.0;
+		//UpdateScore();
+		//g_pGameRules->UpdateTeamName(this,1);
+	}
+	
+	if (IsInBarArea) //le joueur est dans le trigger bar
+	{
+		BarThink(); //healing
+		if (!WasInBar)
+			EntreDansLeBar();//le macon vient de rentrer dans le bar
+	}
+	else if (!IsInBarArea)
+	{
+		if (WasInBar)
+			SortDuBar();
+	}
+	
 	int buttonsChanged = (m_afButtonLast ^ pev->button);	// These buttons have changed this frame
 	
 	// Debounced button codes for pressed/released
@@ -2225,6 +3333,49 @@ Things powered by the battery
  
 */
 
+void CBasePlayer::DropParpaing()
+{
+	CBasePlayerWeapon *pParpaing = GetClassPtr((CParpaing *)NULL );
+	CBombParpaingWeapon *pBombParpaingWeapon = GetClassPtr((CBombParpaingWeapon *)NULL );
+	
+	switch (m_iHasParpaing)
+	{
+		case 0:
+			return;
+			break;
+			
+		case 1:
+			pParpaing->pev->classname = MAKE_STRING("weapon_parpaing");
+			pParpaing->Spawn();
+			UTIL_SetSize(pParpaing->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+			UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+			pParpaing->pev->origin = pev->origin + gpGlobals->v_forward * 64;
+			pParpaing->pev->angles = pev->angles;
+			SelectItem ("weapon_parpaing");
+			RemovePlayerItem(m_pActiveItem);
+			m_iHasParpaing = 0;
+			pev->weapons &= ~(1<<16);
+			break;
+			
+		case 2:
+			pBombParpaingWeapon->pev->classname = MAKE_STRING("weapon_bombparpaing");
+			pBombParpaingWeapon->Spawn();
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Bomb has been dropped");
+			UTIL_SetSize(pBombParpaingWeapon->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+			UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+			pBombParpaingWeapon->pev->origin = pev->origin + gpGlobals->v_forward * 64;
+			pBombParpaingWeapon->pev->angles = pev->angles;
+			SelectItem ("weapon_bombparpaing");
+			RemovePlayerItem(m_pActiveItem);
+			m_iHasParpaing = 0;
+			pev->weapons &= ~(1<<20);
+			break;
+			
+		default :
+			break;
+	}
+}
+
 // if in range of radiation source, ping geiger counter
 
 #define GEIGERDELAY 0.25
@@ -2565,6 +3716,108 @@ void CBasePlayer :: UpdatePlayerSound ( void )
 
 void CBasePlayer::PostThink()
 {
+	// alcool
+	if (m_iAlcool>0 && gpGlobals->time>=NextAlcool )
+	{
+		m_iAlcool--;
+		//ALERT (at_console,"%i\n",m_iAlcool);
+		MESSAGE_BEGIN( MSG_ONE, gmsgAlcool, NULL ,pev);
+		WRITE_SHORT(m_iAlcool ); //on uptdate l'état d'étililisme
+		MESSAGE_END();
+		
+		if (!IsInBarArea)
+		{
+			int x=RANDOM_LONG( 0, 50*m_iAlcool );
+			x = x*RANDOM_LONG(-1,1);
+			int y=RANDOM_LONG( 0, 50*m_iAlcool );
+			y = y*RANDOM_LONG(-1,1);
+			int z=1;
+			UTIL_MakeAimVectors( pev->angles );
+			
+			pev->velocity = pev->velocity + Vector (x,y,z);
+			/*UTIL_MakeAimVectors( pev->angles );
+			pev->velocity = pev->velocity + gpGlobals->v_up*z + gpGlobals->v_forward*x*-1 + gpGlobals->v_right*y; // haut bas*/
+		}
+		NextAlcool = gpGlobals->time + 1.5;
+	}
+	
+	if (pev->health < 40
+	    && pev->health > 0
+	    && m_iTeam !=INSPECTEUR
+	    && m_iTeam != SPECTATEUR
+	    && m_iHasParpaing)
+	{
+		if (m_iHasParpaing == 1 && PoseParpaing== false)
+		{
+			CParpaing *pParpaing = GetClassPtr((CParpaing *)NULL );
+			pParpaing->pev->classname = MAKE_STRING("weapon_parpaing");
+			pParpaing->Spawn();
+			UTIL_SetSize(pParpaing->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+			UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+			pParpaing->pev->origin = pev->origin + gpGlobals->v_forward * 64;
+			pParpaing->pev->angles = pev->angles;
+			SelectItem ("weapon_parpaing");
+			RemovePlayerItem(m_pActiveItem);
+			m_iHasParpaing = 0;
+			pev->weapons &= ~(1<<16);
+			
+			SelectItem ("weapon_truelle"); // BBk : reprend la truelle
+			
+			g_pGameRules->SetSpeed(this);  //BBk : remet bien la vitesse
+			
+			UTIL_MessageEffect(this,"Vous etes trop blesse pour transporter un parpaing...\n",1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);
+		}
+		else if (m_iHasParpaing == 2)
+		{
+			CBombParpaingWeapon *pBombParpaingWeapon = GetClassPtr((CBombParpaingWeapon *)NULL );
+			pBombParpaingWeapon->pev->classname = MAKE_STRING("weapon_bombparpaing");
+			pBombParpaingWeapon->Spawn();
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Bomb has been dropped");
+			UTIL_SetSize(pBombParpaingWeapon->pev, Vector(-16,-16,0), Vector(16,16,8)); //BLP Important ! regler la taille du parpaing !
+			UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+			pBombParpaingWeapon->pev->origin = pev->origin + gpGlobals->v_forward * 64;
+			pBombParpaingWeapon->pev->angles = pev->angles;
+			SelectItem ("weapon_bombparpaing");
+			RemovePlayerItem(m_pActiveItem);
+			m_iHasParpaing = 0;
+			pev->weapons &= ~(1<<20);
+			
+			SelectItem ("weapon_truelle"); // BBk : reprend la truelle
+			
+			UTIL_MessageEffect(this,"Vous etes trop blesse pour transporter une Bombe...\n",1,-1,-1,0,Vector(0,0,200),255,Vector(0,0,0),0,1,1,1,0);
+		}
+	}
+	
+	if (UseCarnet==TRUE && CarnetTime>=gpGlobals->time)
+	{
+		//ALERT(at_console,"ATTAK : %f\n",CarnetTime-gpGlobals->time);
+		if (pMauvais->pev->health>51)
+		{
+			pMauvais->TakeDamage( VARS(eoNullEntity), VARS(eoNullEntity), 20, DMG_SHOCK );
+		}
+		else if (pMauvais->pev->health<50)
+		{
+			if (!BadKill)
+				AddPoints(10,TRUE);
+			// moins de 50 points de vie alors on exclu......
+			BadKill=1; // info ke le macon est mort....
+			pMauvais->TakeDamage( VARS(eoNullEntity), VARS(eoNullEntity), 100, DMG_SHOCK );
+		}
+	}
+	else if (UseCarnet==TRUE && CarnetTime<gpGlobals->time)
+	{
+		UseCarnet=FALSE;
+		pMauvais->TakeCarnet=0;
+		ALERT(at_console,"Fin de lattak , victime : %s\n",STRING(pMauvais->pev->netname));
+	}
+	// sifflet
+	if (IsCheck && StopByIns<=gpGlobals->time)
+	{
+		//ALERT (at_console ,"Stop check\n");
+		IsCheck =0;
+		EnableControl (TRUE);
+	}
+	
 	if ( g_fGameOver )
 		goto pt_end;         // intermission or finale
 
@@ -2763,8 +4016,46 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 {
 	CBaseEntity *pSpot;
 	edict_t		*player;
-
+	
+ReturnSpot2:
+	
 	player = pPlayer->edict();
+	
+	const char* start_ent = NULL;
+	CBasePlayer *pMacon = (CBasePlayer*)pPlayer;
+	switch (pMacon->m_iTeam)
+	{
+		case 0:
+			switch(RANDOM_LONG(1,3))
+			{
+				case 1:
+					pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_macon1");
+					goto ReturnSpot;
+					break;
+				case 2:
+					pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_macon2");
+					goto ReturnSpot;
+					break;
+				case 3:
+					pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_inspecteur");
+					goto ReturnSpot;
+					break;
+			}
+			break;
+		case 1:
+			pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_macon1");
+			goto ReturnSpot;
+			break;
+		case 2:
+			pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_macon2");
+			goto ReturnSpot;
+			break;
+		case 3:
+			pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_inspecteur");
+			goto ReturnSpot;
+			break;
+	}
+
 
 // choose a info_player_deathmatch point
 	if (g_pGameRules->IsCoOp())
@@ -2837,14 +4128,20 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 	}
 
 ReturnSpot:
+	//if ( FNullEnt( pSpot ) )
+	if ( IsSpawnPointValid( pPlayer, pSpot ) )
+	{
 	if ( FNullEnt( pSpot ) )
 	{
+		pSpot = UTIL_FindEntityByClassname( g_pLastSpawn, "info_player_start");
 		ALERT(at_error, "PutClientInServer: no info_player_start on level");
-		return INDEXENT(0);
+		//return INDEXENT(0);
 	}
 
 	g_pLastSpawn = pSpot;
 	return pSpot->edict();
+		
+	} else goto ReturnSpot2;
 }
 
 void CBasePlayer::Spawn( void )
@@ -2870,6 +4167,13 @@ void CBasePlayer::Spawn( void )
 	m_bitsDamageType	= 0;
 	m_afPhysicsFlags	= 0;
 	m_fLongJump			= FALSE;// no longjump module. 
+	
+	ParpaingTime		= 0; //hlp
+	MsgTime = 0;
+	CheckTime = 0;
+	IsDefusing = false;
+	DefuseDraw = false;
+	SpawnPoint = Spawn_Place;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -2892,7 +4196,7 @@ void CBasePlayer::Spawn( void )
 
 	m_iFlashBattery = 99;
 	m_flFlashLightTime = 1; // force first message
-
+	g_pGameRules->SetSpeed(this);
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
 
@@ -2934,12 +4238,103 @@ void CBasePlayer::Spawn( void )
 	}
 
 	m_lastx = m_lasty = 0;
+		
+	//////////////////////////////////////
+	/*
+	for (int j = 1; j <= gpGlobals->maxClients; j++ )
+	{
+		CBaseEntity *plr2 = UTIL_PlayerByIndex( j );
+		
+		if ( plr2  )
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBaseEntity *plr = UTIL_PlayerByIndex( i );
+				//if ( plr && IsValidTeam( plr->TeamID() ) )
+				if ( plr  )
+				{
+					MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, plr2->edict() );
+				//	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+						WRITE_BYTE( plr->entindex() );
+						WRITE_STRING( plr->TeamID());
+					MESSAGE_END();
+				}
+			}
+		}
+	}
+	*/
+	
+	int nbblame,nbmacon;
+	nbblame=0;
+	nbmacon=0;
+	
+	for (i = 1;i<= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity *pPlayer2 = UTIL_PlayerByIndex( i );
+		if ( pPlayer2 )
+		{
+			CBasePlayer *pPlayer3 = (CBasePlayer*)pPlayer2;
+			if (pPlayer3->m_iTeam == 1 || pPlayer3->m_iTeam == 2 /*|| pPlayer3->m_iTeam == 3*/)
+			{
+				nbmacon++;
+				if (pPlayer3->AlreadyBlame==1)
+				{
+					nbblame++;
+				}
+			}
+		}
+	}
+	
+	MESSAGE_BEGIN ( MSG_ALL, gmsgTime);
+	WRITE_SHORT ( 4 );
+	WRITE_BYTE ( nbmacon );
+	WRITE_BYTE ( nbblame );
+	MESSAGE_END();
+	
+	//ScorePanel();
+	
+	//////////////////////////////////////
 	
 	m_flNextChatTime = gpGlobals->time;
 
 	g_pGameRules->PlayerSpawn( this );
 }
 
+void CBasePlayer::ScorePanel()
+{
+	//BBk hum completement bidouillé le code la :p
+	for (int j = 1; j <= gpGlobals->maxClients; j++ )
+	{
+		CBaseEntity *plr2 = UTIL_PlayerByIndex( j );
+		
+		if ( plr2  )
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBaseEntity *plr = UTIL_PlayerByIndex( i );
+				
+				if ( plr  )
+				{
+					if (plr->edict() != plr2->edict())
+					{
+						MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, plr2->edict() );
+						WRITE_BYTE( plr->entindex() );
+						WRITE_STRING( plr->TeamID() );
+						MESSAGE_END();
+						
+						MESSAGE_BEGIN( MSG_ONE, gmsgScoreInfo, NULL, plr2->edict() );
+						WRITE_BYTE( plr->entindex() );
+						WRITE_SHORT( pev->frags );
+						WRITE_SHORT( m_iDeaths );
+						WRITE_SHORT( 0 );
+						WRITE_SHORT( g_pGameRules->GetTeamIndex( m_szTeamName ) + 1 );
+						MESSAGE_END();
+					}
+				}
+			}
+		}
+	}
+}
 
 void CBasePlayer :: Precache( void )
 {
@@ -3339,7 +4734,8 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 }
 
 
-
+// "CBaseEntity *FindEntityForward( CBaseEntity *pMe )" déplacé en haut (~2222)
+/*
 CBaseEntity *FindEntityForward( CBaseEntity *pMe )
 {
 	TraceResult tr;
@@ -3353,7 +4749,7 @@ CBaseEntity *FindEntityForward( CBaseEntity *pMe )
 	}
 	return NULL;
 }
-
+*/
 
 BOOL CBasePlayer :: FlashlightIsOn( void )
 {
@@ -3463,6 +4859,8 @@ void CBasePlayer::ImpulseCommands( )
 		}
 	case 100:
         // temporary flashlight for level designers
+		if ((m_iTeam == SPECTATEUR) && (!CVAR_GET_FLOAT("mp_ghost")))
+			return;
         if ( FlashlightIsOn() )
 		{
 			FlashlightTurnOff();
@@ -3479,6 +4877,10 @@ void CBasePlayer::ImpulseCommands( )
 		{
 			// too early!
 			break;
+		}
+		if ((!CVAR_GET_FLOAT("mp_ghost")) && (m_iTeam == SPECTATEUR))
+		{
+			return;
 		}
 
 		UTIL_MakeVectors(pev->v_angle);
@@ -3531,7 +4933,30 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 			}
 			break;
 		}
-
+	case 77:
+		{
+			{
+				UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+				Create("monster_megret", pev->origin + gpGlobals->v_forward * 128, pev->angles);
+			}
+			break;
+		}
+	case 78:
+		{
+			{
+				UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+				Create("item_bombparpaing", pev->origin + gpGlobals->v_forward * 128, pev->angles);
+			}
+			break;
+		}
+	case 79:
+		{
+			{
+				UTIL_MakeVectors( Vector( 0, pev->v_angle.y, 0 ) );
+				Create("monster_scientist", pev->origin + gpGlobals->v_forward * 128, pev->angles);
+			}
+			break;
+		}
 
 	case 101:
 		gEvilImpulse101 = TRUE;
@@ -3680,6 +5105,29 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	}
 #endif	// HLDEMO_BUILD
 }
+
+//=========================================================
+// UpdateScore. 
+//=========================================================
+void CBasePlayer::UpdateScore(void)
+{
+	//ERT(at_console, "@@ Update Score @@\n");
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+	WRITE_BYTE( ENTINDEX(edict()) );
+	WRITE_SHORT( pev->frags );
+	WRITE_SHORT( m_iDeaths );
+	WRITE_SHORT( 0 );
+	WRITE_SHORT( g_pGameRules->GetTeamIndex( m_szTeamName ) + 1 );
+	MESSAGE_END();
+}
+
+//=========================================================
+// UpdateTeamName. 
+//=========================================================
+/*void CBasePlayer::UpdateTeamName2(bool msg)
+{
+	g_pGameRules->UpdateTeamName(this,msg);
+}*/
 
 //
 // Add a weapon to the player (Item == Weapon == Selectable Object)
@@ -4024,12 +5472,13 @@ void CBasePlayer :: UpdateClientData( void )
 	if (pev->armorvalue != m_iClientBattery)
 	{
 		m_iClientBattery = pev->armorvalue;
-
+		/*
 		ASSERT( gmsgBattery > 0 );
 		// send "health" update message
 		MESSAGE_BEGIN( MSG_ONE, gmsgBattery, NULL, pev );
 			WRITE_SHORT( (int)pev->armorvalue);
 		MESSAGE_END();
+		*/
 	}
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -4511,6 +5960,14 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 		// no dropping in single player.
 		return;
 	}
+	
+	if ((m_pActiveItem->m_iId == WEAPON_CROWBAR)
+	    || (m_pActiveItem->m_iId == WEAPON_PARPAING)
+	    || (m_pActiveItem->m_iId == WEAPON_BOMBPARPAING)
+	    || (m_pActiveItem->m_iId == WEAPON_SIFFLET2)
+	    || (m_pActiveItem->m_iId == WEAPON_CARNET)
+		)
+		return;
 
 	if ( !strlen( pszItemName ) )
 	{
@@ -4883,3 +6340,10 @@ void CInfoIntermission::Think ( void )
 
 LINK_ENTITY_TO_CLASS( info_intermission, CInfoIntermission );
 
+//hlp
+void ShowVGUI( CBasePlayer *pPlayer,int iMenu )
+{
+	MESSAGE_BEGIN( MSG_ONE, gmsgTeamMenu, NULL, pPlayer->pev );
+	WRITE_BYTE( iMenu ); //Ici c'est le numéro du menu qui a besoin d'être envoyé
+	MESSAGE_END();
+}

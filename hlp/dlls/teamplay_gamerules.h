@@ -25,6 +25,9 @@ class CHalfLifeTeamplay : public CHalfLifeMultiplay
 {
 public:
 	CHalfLifeTeamplay();
+	
+	virtual void CHalfLifeTeamplay::UpdateTeamName( CBasePlayer *pPlayer ,bool msg);
+	virtual void EndRound( char WinTeam[TEAM_NAME_LENGTH] );
 
 	virtual BOOL ClientCommand( CBasePlayer *pPlayer, const char *pcmd );
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
@@ -36,7 +39,10 @@ public:
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void InitHUD( CBasePlayer *pl );
 	virtual void DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pevInflictor );
-	virtual const char *GetGameDescription( void ) { return "HL Teamplay"; }  // this is the game name that gets seen in the server browser
+	//virtual const char *GetGameDescription( void ) { return "HL Teamplay"; }  // this is the game name that gets seen in the server browser
+	//BLP
+	virtual const char *GetGameDescription( void ) { return "HL-Parpaing"; }  // this is the game name that gets seen in the server browser
+	//BLP
 	virtual void UpdateGameMode( CBasePlayer *pPlayer );  // the client needs to be informed of the current game mode
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual void Think ( void );

@@ -22,12 +22,13 @@
 #include "player.h"
 #include "gamerules.h"
 
+#include "mur.h"
 
 #define	CROWBAR_BODYHIT_VOLUME 128
 #define	CROWBAR_WALLHIT_VOLUME 512
 
-LINK_ENTITY_TO_CLASS( weapon_crowbar, CCrowbar );
-
+//LINK_ENTITY_TO_CLASS( weapon_crowbar, CCrowbar );
+LINK_ENTITY_TO_CLASS( weapon_truelle, CCrowbar );
 
 
 enum gauss_e {
@@ -46,8 +47,10 @@ enum gauss_e {
 void CCrowbar::Spawn( )
 {
 	Precache( );
+	pev->classname = MAKE_STRING("weapon_truelle");
 	m_iId = WEAPON_CROWBAR;
-	SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+	//SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+	SET_MODEL(ENT(pev), "models/w_truelle.mdl");
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
@@ -56,9 +59,15 @@ void CCrowbar::Spawn( )
 
 void CCrowbar::Precache( void )
 {
+	/*
 	PRECACHE_MODEL("models/v_crowbar.mdl");
 	PRECACHE_MODEL("models/w_crowbar.mdl");
 	PRECACHE_MODEL("models/p_crowbar.mdl");
+	*/
+	PRECACHE_MODEL("models/v_truelle.mdl");
+	PRECACHE_MODEL("models/w_truelle.mdl");
+	PRECACHE_MODEL("models/p_truelle.mdl");
+	
 	PRECACHE_SOUND("weapons/cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
@@ -88,7 +97,8 @@ int CCrowbar::GetItemInfo(ItemInfo *p)
 
 BOOL CCrowbar::Deploy( )
 {
-	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW, "crowbar" );
+	//return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_truelle.mdl", "models/p_truelle.mdl", CROWBAR_DRAW, "truelle" );
 }
 
 void CCrowbar::Holster( int skiplocal /* = 0 */ )
@@ -148,7 +158,8 @@ void CCrowbar::PrimaryAttack()
 	if (! Swing( 1 ))
 	{
 		SetThink( &CCrowbar::SwingAgain );
-		pev->nextthink = gpGlobals->time + 0.1;
+		//pev->nextthink = gpGlobals->time + 0.1;
+		pev->nextthink = gpGlobals->time + 0.5;
 	}
 }
 
@@ -235,12 +246,51 @@ int CCrowbar::Swing( int fFirst )
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			//pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_CLUB );
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_CLUB | DMG_NEVERGIB );
+			/*	if (!strcmp(STRING(pEntity->pev->classname), "mur1"))
+				{	
+					if (m_pPlayer->m_iTeam ==2 )
+					{
+						CMur *mur1 =(CMur*)pEntity;
+						if(mur1->avancement > 0 )
+						{
+							mur1->avancement --;
+							if (mur1->avancement <= 0)
+							{
+								mur1->avancement=0;
+								if (CVAR_GET_FLOAT("mp_derrick"))
+									UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs("[Derrick]: Un mur detruit par %s ! Ca t'amuse p'tit con ?\n", STRING(m_pPlayer->pev->netname)));
+							}
+						}
+						mur1->Anim(); // remet à jour l'anim du mur
+					}
+				}
+	
+				if (!strcmp(STRING(pEntity->pev->classname), "mur2"))
+				{	
+					if (m_pPlayer->m_iTeam ==1 )
+					{
+						CMur *mur2 =(CMur*)pEntity;
+						if(mur2->avancement > 0 )
+						{
+							mur2->avancement --;
+							if (mur2->avancement <= 0)
+							{
+								mur2->avancement=0;
+								if (CVAR_GET_FLOAT("mp_derrick"))
+									UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs("[Derrick]: Un mur detruit par %s ! Ca t'amuse p'tit con ?\n", STRING(m_pPlayer->pev->netname)));
+							}
+						}
+						mur2->Anim(); // remet à jour l'anim du mur
+					}
+				}*/
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			//pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar / 2, gpGlobals->v_forward, &tr, DMG_CLUB );
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgCrowbar / 2, gpGlobals->v_forward, &tr, DMG_CLUB | DMG_NEVERGIB );
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
@@ -304,7 +354,8 @@ int CCrowbar::Swing( int fFirst )
 
 		m_pPlayer->m_iWeaponVolume = flVol * CROWBAR_WALLHIT_VOLUME;
 #endif
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
+		//m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
 		
 		SetThink( &CCrowbar::Smack );
 		pev->nextthink = UTIL_WeaponTimeBase() + 0.2;

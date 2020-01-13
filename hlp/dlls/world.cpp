@@ -90,6 +90,11 @@ DLL_DECALLIST gDecals[] = {
 	{ "{smscorch3", 0 },	// DECAL_SMALLSCORCH3,	// Small scorch mark
 	{ "{mommablob", 0 },	// DECAL_MOMMABIRTH		// BM Birth spray
 	{ "{mommablob", 0 },	// DECAL_MOMMASPLAT		// BM Mortar spray?? need decal
+	
+	{ "{parpaing1",0}, // HLP = cassure sur le sol dû o parpaing.
+	{ "{parpaing2",0}, // HLP = cassure sur le sol dû o parpaing.
+	{ "{parpaing3",0}, // HLP = cassure sur le sol dû o parpaing.
+	{ "{parpaing4",0}, // HLP = cassure sur le sol dû o parpaing.
 };
 
 /*

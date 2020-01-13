@@ -70,6 +70,12 @@ LINK_ENTITY_TO_CLASS(info_player_deathmatch,CBaseDMStart);
 LINK_ENTITY_TO_CLASS(info_player_start,CPointEntity);
 LINK_ENTITY_TO_CLASS(info_landmark,CPointEntity);
 
+LINK_ENTITY_TO_CLASS(info_player_inspecteur,CPointEntity);
+LINK_ENTITY_TO_CLASS(info_player_macon1,CPointEntity);
+LINK_ENTITY_TO_CLASS(info_player_macon2,CPointEntity);
+
+LINK_ENTITY_TO_CLASS(info_megret,CPointEntity);
+
 void CBaseDMStart::KeyValue( KeyValueData *pkvd )
 {
 	if (FStrEq(pkvd->szKeyName, "master"))

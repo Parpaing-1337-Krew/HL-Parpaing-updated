@@ -23,15 +23,25 @@
 #include	"gamerules.h"
 #include	"teamplay_gamerules.h"
 #include	"game.h"
+//#include	"sql.h"
 
 static char team_names[MAX_TEAMS][MAX_TEAMNAME_LENGTH];
 static int team_scores[MAX_TEAMS];
 static int num_teams = 0;
+extern int gmsgTime;
+
+float NextTime; //<-- hlp
 
 extern DLL_GLOBAL BOOL		g_fGameOver;
 
 CHalfLifeTeamplay :: CHalfLifeTeamplay()
 {
+	//RoundTime = gpGlobals->time + g_pGameRules->RoundTemps;
+	RoundTime = gpGlobals->time + CVAR_GET_FLOAT("mp_roundtime")*60;
+	RoundOver = 0;
+	NextTime=0;
+	//SQLNxtSend=0;
+	
 	m_DisableDeathMessages = FALSE;
 	m_DisableDeathPenalty = FALSE;
 
@@ -43,7 +53,8 @@ CHalfLifeTeamplay :: CHalfLifeTeamplay()
 	m_szTeamList[0] = 0;
 
 	// Cache this because the team code doesn't want to deal with changing this in the middle of a game
-	strncpy( m_szTeamList, teamlist.string, TEAMPLAY_TEAMLISTLENGTH );
+	//strncpy( m_szTeamList, teamlist.string, TEAMPLAY_TEAMLISTLENGTH );
+	strncpy( m_szTeamList, "Spectateur,Macon[51],Macon[Ricard],Inspecteur", TEAMPLAY_TEAMLISTLENGTH );
 
 	edict_t *pWorld = INDEXENT(0);
 	if ( pWorld && pWorld->v.team )
@@ -53,7 +64,8 @@ CHalfLifeTeamplay :: CHalfLifeTeamplay()
 			const char *pTeamList = STRING(pWorld->v.team);
 			if ( pTeamList && strlen(pTeamList) )
 			{
-				strncpy( m_szTeamList, pTeamList, TEAMPLAY_TEAMLISTLENGTH );
+				//strncpy( m_szTeamList, pTeamList, TEAMPLAY_TEAMLISTLENGTH );
+				strncpy( m_szTeamList, "Spectateur,Macon[51],Macon[Ricard],Inspecteur", TEAMPLAY_TEAMLISTLENGTH );
 			}
 		}
 	}
@@ -71,6 +83,47 @@ extern cvar_t timeleft, fragsleft;
 #include "voice_gamemgr.h"
 extern CVoiceGameMgr	g_VoiceGameMgr;
 
+void CHalfLifeTeamplay :: EndRound ( char WinTeam[16] )
+{
+	RoundOver = 0;
+	//RoundTime = gpGlobals->time + g_pGameRules->RoundTemps;
+	RoundTime = gpGlobals->time + CVAR_GET_FLOAT("mp_roundtime")*60;
+	CBaseEntity *mur1 = UTIL_FindEntityByClassname(NULL, "mur1");
+	CBaseEntity *mur2 = UTIL_FindEntityByClassname(NULL, "mur2");
+	if (mur1)
+		mur1->Spawn();
+	if(mur2)
+		mur2->Spawn();
+	
+	// enleve tous les parpaing oubliés
+	CBaseEntity *parp = NULL;
+	while ( parp = UTIL_FindEntityByClassname(parp, "weapon_parpaing")) // cherche toute les entitées mp3
+	{
+		((CParpaing*)parp)->Reset ();
+	}
+	
+	for (int i = 1;i<= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+		if ( pPlayer )
+		{
+			CBasePlayer *pPlayer2 = (CBasePlayer*)pPlayer;
+			if (pPlayer2->m_iTeam == 0)
+			{
+				pPlayer2->m_iTeam = pPlayer2->m_iTrueTeam;
+				pPlayer2->m_iTrueTeam = pPlayer2->m_iTeam;
+				pPlayer2->m_NbKO = 0; // on reset le nb de chaos
+			}
+			//	pPlayer2->RemoveAllItems(TRUE);
+			if (pPlayer2->m_iHasParpaing)
+			{
+				pPlayer2->DropParpaing();
+			}
+			pPlayer2->Spawn();
+		}
+	}
+}
+
 void CHalfLifeTeamplay :: Think ( void )
 {
 	///// Check game rules /////
@@ -79,6 +132,7 @@ void CHalfLifeTeamplay :: Think ( void )
 
 	int frags_remaining = 0;
 	int time_remaining = 0;
+	long tpsrestant;
 
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
@@ -97,6 +151,94 @@ void CHalfLifeTeamplay :: Think ( void )
 		GoToIntermission();
 		return;
 	}
+	
+	/*
+	if (SQLNxtSend < gpGlobals->time)
+	{
+		SQLServerStatus();
+		SQLNxtSend = gpGlobals->time + 60.0;
+	}
+	*/
+	if (NextTime < gpGlobals->time) {
+		
+		tpsrestant = RoundTime - gpGlobals->time;
+		MESSAGE_BEGIN ( MSG_BROADCAST, gmsgTime );
+		
+		if (RoundOver!=0)
+			tpsrestant=-1; // madfab = envoi des secondes > à 60 donc le client comprend ke le round est fini
+		// car pdt un round normal , pdt le le roudnover (5 sec) les sec envoyer était enorme
+		// jai utilisé ce bug pour savoir la fin du round tout simplement
+		WRITE_SHORT ( 1 );
+		WRITE_COORD ( time_remaining );
+		//WRITE_LONG ( tpsrestant );
+		MESSAGE_END();
+		NextTime = gpGlobals->time + 1.0;
+	}
+	
+	if (CVAR_GET_FLOAT("mp_megret"))
+	{
+		CHalfLifeMultiplay::CreateMegret();
+	}
+	
+	if (CVAR_GET_FLOAT("mp_defuse"))
+	{
+		CHalfLifeMultiplay::DefuseTest();
+	}
+	
+	if (CVAR_GET_FLOAT("mp_ctf"))
+	{
+		CHalfLifeMultiplay::CtfTest();
+	}
+	
+	
+	//BLP Fin du round, dès que le temps est écoulé
+	/*
+	if ((RoundTime < gpGlobals->time) && (RoundTime != 0))
+	{
+		RoundOver = gpGlobals->time +5;
+		RoundTime = 0;
+		strcpy(WinTeam, "Inspecteur");
+		char msg[50];
+		sprintf(msg,"%s remporte le round\n",WinTeam);
+		UTIL_LogPrintf(msg);
+		for (int i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			if (pPlayer)
+			{
+				UTIL_MessageEffect(pPlayer,msg,1,-1,-1,0,Vector(255,255,50),255,Vector(0,0,0),0,1,1,1,0);
+				EMIT_SOUND(ENT(pPlayer->pev),CHAN_VOICE,"feedback/mur.wav",1,ATTN_NORM);
+				CBasePlayer *pPlayer2 = (CBasePlayer*)pPlayer;
+				if (pPlayer2->m_iTeam != SPECTATEUR)
+				pPlayer2->EnableControl(FALSE);
+			}
+		}
+	}
+	*/
+	//BLP Fin du round, dès qu'un mur est construit
+	if ((RoundOver > 0) && (RoundOver < gpGlobals->time))
+	{
+//-----------------------------------------		
+		//	GoToIntermission(); //Fin de la map...
+		//	return;// ...ou alors...
+//-----------------------------------------		
+		//...fin du round, mais dans ce cas il faut s'occupper du round(points pour la team).
+		for (int i = 1;i<= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			if (pPlayer)
+			{
+				CBasePlayer *pPlayer2 = (CBasePlayer*)pPlayer;
+				if (pPlayer2->m_iTeam != 0)
+					pPlayer2->EnableControl(FALSE);
+			}
+		}
+		EndRound(WinTeam);
+		//RoundTime = gpGlobals->time + g_pGameRules->RoundTemps;
+		RoundTime = gpGlobals->time + CVAR_GET_FLOAT("mp_roundtime")*60;
+		NextTime = gpGlobals->time + 1.0;
+	}
+	//BLP
 
 	float flFragLimit = fraglimit.value;
 	if ( flFragLimit )
@@ -182,6 +324,7 @@ const char *CHalfLifeTeamplay::SetDefaultPlayerTeam( CBasePlayer *pPlayer )
 	// copy out the team name from the model
 	char *mdls = g_engfuncs.pfnInfoKeyValue( g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model" );
 	strncpy( pPlayer->m_szTeamName, mdls, TEAM_NAME_LENGTH );
+	//strncpy( pPlayer->m_szTeamName, "Spectateur", TEAM_NAME_LENGTH );
 
 	RecountTeams();
 
@@ -196,14 +339,91 @@ const char *CHalfLifeTeamplay::SetDefaultPlayerTeam( CBasePlayer *pPlayer )
 		}
 		else
 		{
-			pTeamName = TeamWithFewestPlayers();
+			//pTeamName = TeamWithFewestPlayers();
+			pTeamName = team_names[0];
 		}
 		strncpy( pPlayer->m_szTeamName, pTeamName, TEAM_NAME_LENGTH );
+		//strncpy( pPlayer->m_szTeamName, "Spectateur", TEAM_NAME_LENGTH );
 	}
 
 	return pPlayer->m_szTeamName;
 }
 
+void CHalfLifeTeamplay::UpdateTeamName( CBasePlayer *pPlayer,bool msg )
+{
+	//ALERT(at_console, "@@ UPDATE team NAME @@\n");
+	int i;
+	//SetDefaultPlayerTeam( pPlayer );
+	//CHalfLifeMultiplay::InitHUD( pPlayer );
+	
+	// Send down the team names
+	MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
+	WRITE_BYTE( num_teams );
+	for ( i = 0; i < num_teams; i++ )
+	{
+		WRITE_STRING( team_names[ i ] );
+	}
+	MESSAGE_END();
+	
+	RecountTeams();
+	
+	if (msg)
+	{
+		char *mdls = g_engfuncs.pfnInfoKeyValue( g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model" );
+		// update the current player of the team he is joining
+		char text[1024];
+		if ( !strcmp( mdls, pPlayer->m_szTeamName ) )
+		{
+			sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+		}
+		else
+		{
+			sprintf( text, "* assigned to team %s\n", pPlayer->m_szTeamName );
+		}
+		UTIL_SayText( text, pPlayer );
+	}
+	
+	MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
+	WRITE_BYTE( num_teams );
+	for ( i = 0; i < num_teams; i++ )
+	{
+		WRITE_STRING( team_names[ i ] );
+	}
+	MESSAGE_END();
+	
+	ChangePlayerTeam( pPlayer, pPlayer->m_szTeamName, FALSE, FALSE );
+	//UTIL_SayText( text, pPlayer );
+	int clientIndex = pPlayer->entindex();
+	RecountTeams();
+	// update this player with all the other players team info
+	// loop through all active players and send their team info to the new client
+	//char text[1024];
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+
+		/*
+		if (plr->entindex() != pPlayer->entindex() )
+		{
+			sprintf( text, "* %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+			MESSAGE_BEGIN( MSG_ONE, gmsgSayText, NULL, plr->edict() );
+			WRITE_BYTE( pPlayer->entindex() );
+			WRITE_STRING( text );
+			MESSAGE_END();
+		}
+		*/
+		
+		if ( plr && IsValidTeam( plr->TeamID() ) )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+			WRITE_BYTE( plr->entindex() );
+			WRITE_STRING( plr->TeamID());
+			MESSAGE_END();
+		}
+	}
+}
+//douanier
+extern int gmsgAlcool;
 
 //=========================================================
 // InitHUD
@@ -212,7 +432,8 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 {
 	int i;
 
-	SetDefaultPlayerTeam( pPlayer );
+	//SetDefaultPlayerTeam( pPlayer );
+	strncpy( pPlayer->m_szTeamName, "Spectateur", TEAM_NAME_LENGTH );
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
 	// Send down the team names
@@ -238,7 +459,7 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 		sprintf( text, "* assigned to team %s\n", pPlayer->m_szTeamName );
 	}
 
-	ChangePlayerTeam( pPlayer, pPlayer->m_szTeamName, FALSE, FALSE );
+	//ChangePlayerTeam( pPlayer, pPlayer->m_szTeamName, FALSE, FALSE );
 	UTIL_SayText( text, pPlayer );
 	int clientIndex = pPlayer->entindex();
 	RecountTeams();
@@ -249,12 +470,17 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 		CBaseEntity *plr = UTIL_PlayerByIndex( i );
 		if ( plr && IsValidTeam( plr->TeamID() ) )
 		{
+			/*
 			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
 				WRITE_BYTE( plr->entindex() );
 				WRITE_STRING( plr->TeamID() );
 			MESSAGE_END();
+			*/
 		}
 	}
+	///////////////////////////////
+	UpdateTeamName(pPlayer,1);
+	///////////////////////////////
 }
 
 
@@ -292,6 +518,7 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 	g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 
 	// notify everyone's HUD of the team change
+	//ALERT ( at_console, "@@@@ Change team - update des donnee @@@\n" );
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
 		WRITE_BYTE( clientIndex );
 		WRITE_STRING( pPlayer->m_szTeamName );
@@ -304,6 +531,55 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 		WRITE_SHORT( 0 );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
+	
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( clientIndex );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( 0 );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+/*	char text[1024];
+	sprintf( text, "* %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	UTIL_SayTextAll( text, pPlayer );*/
+	
+	
+	
+	char text[256];
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		//if ( plr && IsValidTeam( plr->TeamID() ) )
+		if ( plr  )
+		{
+			if (clientIndex != plr->entindex() )
+			{
+				
+				sprintf( text, "* %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+				//		sprintf( text, "- %s has left the game\n", STRING(pEntity->v.netname) );
+				MESSAGE_BEGIN( MSG_ONE, gmsgSayText, NULL, plr->edict()  );
+					WRITE_BYTE( clientIndex );
+					WRITE_STRING( text );
+				MESSAGE_END();
+				
+			}
+			/*
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, plr->edict() );
+				WRITE_BYTE( clientIndex );
+				WRITE_STRING( pPlayer->m_szTeamName );
+			MESSAGE_END();
+	
+			MESSAGE_BEGIN( MSG_ONE, gmsgScoreInfo, NULL, plr->edict() );
+				WRITE_BYTE( clientIndex );
+				WRITE_SHORT( pPlayer->pev->frags );
+				WRITE_SHORT( pPlayer->m_iDeaths );
+				WRITE_SHORT( 0 );
+				WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+			MESSAGE_END();
+			*/
+		}
+	}
 }
 
 
@@ -343,8 +619,8 @@ void CHalfLifeTeamplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 		return;
 	}
 	// notify everyone of the team change
-	sprintf( text, "* %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), mdls );
-	UTIL_SayTextAll( text, pPlayer );
+	//sprintf( text, "* %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), mdls );
+	//UTIL_SayTextAll( text, pPlayer );
 
 	UTIL_LogPrintf( "\"%s<%i><%s><%s>\" joined team \"%s\"\n", 
 		STRING(pPlayer->pev->netname),
@@ -353,7 +629,7 @@ void CHalfLifeTeamplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 		pPlayer->m_szTeamName,
 		mdls );
 
-	ChangePlayerTeam( pPlayer, mdls, TRUE, TRUE );
+	//ChangePlayerTeam( pPlayer, mdls, TRUE, TRUE );
 	// recound stuff
 	RecountTeams( TRUE );
 }

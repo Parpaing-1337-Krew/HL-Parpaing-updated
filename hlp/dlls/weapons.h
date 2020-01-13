@@ -55,6 +55,13 @@ public:
 	BOOL m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.
 };
 
+// hlp
+#define WEAPON_SIFFLET2              18  // ID de l'arme 
+#define SIFFLET2_WEIGHT              15  // priorité dans la séléction automatique 
+//#define SIFFLET2_MAX_CARRY          35  // nombre maximum de munitions portables 
+//#define SIFFLET2_MAX_CLIP            7    // capacité maximal d'un chargeur 
+//#define SIFFLET2_DEFAULT_GIVE        7    // munitions données par l'arme 
+//#define AMMO_SIFFLET2_GIVE          14  // munitions données par un chargeur
 
 // constant items
 #define ITEM_HEALTHKIT		1
@@ -78,6 +85,12 @@ public:
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
+
+#define WEAPON_PARPAING			16
+#define	WEAPON_SIFFLET			17
+//#define	WEAPON_TRUELLE			18
+#define	WEAPON_CARNET			19
+#define	WEAPON_BOMBPARPAING		20
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -104,6 +117,11 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
+
+#define PARPAING_WEIGHT		25
+#define SIFFLET_WEIGHT		1
+//#define TRUELLE_WEIGHT		0
+#define CARNET_WEIGHT		2
 
 
 // weapon clip/carry ammo capacities
@@ -183,6 +201,8 @@ typedef	enum
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
 	BULLET_MONSTER_12MM,
+	
+	BULLET_PLAYER_PARPAING,
 } Bullet;
 
 
@@ -467,6 +487,7 @@ bool bIsMultiplayer ( void );
 void LoadVModel ( char *szViewModel, CBasePlayer *m_pPlayer );
 #endif
 
+/*
 class CGlock : public CBasePlayerWeapon
 {
 public:
@@ -498,6 +519,151 @@ private:
 	unsigned short m_usFireGlock1;
 	unsigned short m_usFireGlock2;
 };
+*/
+
+class CSifflet : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 1; }
+	int GetItemInfo(ItemInfo *p);
+	void Holster( int skiplocal = 0 );
+	void PrimaryAttack( void );
+	
+	BOOL Deploy( void );
+private:
+	unsigned short	m_usCrowbar;
+};
+
+// ============================================ 
+// CCarnet - classe de carnet 
+// ============================================ 
+
+class CCarnet : public CBasePlayerWeapon
+{
+public:
+	// fonctions 
+	virtual BOOL UseDecrement( void );
+	//int    iItemSlot( void ); 
+	int iItemSlot( void ) { return 0; }
+	
+	void    Spawn( void );
+	void    Precache( void );
+	int    GetItemInfo( ItemInfo *p );
+	int    AddToPlayer( CBasePlayer *pPlayer );
+	void    SendWeaponAnim( int iAnim, int skiplocal = 1, int body = 0 );
+	
+	void    PrimaryAttack( void );
+	void    SecondaryAttack( void );
+	
+	BOOL    Deploy( void );
+	void    Holster( int skiplocal = 0 );
+	void    WeaponIdle( void );
+
+public:
+	// variables membres 
+	int    m_iShell;
+	// douille 
+private:
+	unsigned short m_usCarnetFire;
+};
+
+// ============================================ 
+// CMonArme - classe de sifflet2
+// ============================================
+
+class CSifflet2 : public CBasePlayerWeapon
+{
+public:
+	// fonctions 
+	virtual BOOL UseDecrement( void );
+	int iItemSlot( void ) { return 1; }
+	
+	void    Spawn( void );
+	void    Precache( void );
+	int    GetItemInfo( ItemInfo *p );
+	int    AddToPlayer( CBasePlayer *pPlayer );
+	void    SendWeaponAnim( int iAnim, int skiplocal = 1, int body = 0 );
+	
+	void    PrimaryAttack( void );
+	void SecondaryAttack( void );
+	
+	BOOL    Deploy( void );
+	void    Holster( int skiplocal = 0 );
+	//void    Reload( void ); 
+	void    WeaponIdle( void );
+
+public:
+	// variables membres 
+	int    m_iShell;            // douille 
+
+private:
+	unsigned short m_usSifflet2Fire;
+};
+
+
+class CParpaingVolant : public CBaseEntity
+{
+public:
+	void Spawn ( void );
+	void EXPORT Touch(CBaseEntity *pOther);
+	int NbrRebond;
+	void Mutation ( void );//transforme un banal parpaing en "ARME PARPAING"... diabolique
+	int Team; // à quelle team appartient ce parpaing ?!
+};
+
+
+class CParpaing : public CBasePlayerWeapon
+{
+public:
+	float LancementTime;
+	bool Lancement;
+	int Puissance; //LA PUISSANCE du lancement
+	void CreateSpecialParpaing(int m_iType);
+	void CreateFlyingParpaing( void );
+	void FallInit( void );
+	void FallThink ( void );
+	
+	void Spawn( void );
+	void Reset (void);
+	int AddToPlayer( CBasePlayer *pPlayer );
+	void Precache( void );
+	int iItemSlot( void ) { return 0; }
+	void EXPORT BounceTouch( CBaseEntity *pOther );
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	void EXPORT FallThink2( void );
+	int GetItemInfo(ItemInfo *p);
+	void WeaponIdle (void);
+	
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	int Swing( int fFirst );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	int m_iSwing;
+	
+	// hlp (fab)
+	bool onSol; // a til deja touché le sol ? 
+	int OwnerTeam;
+	void PoseParpaing(void);
+	float DernierTouche; // tps pdt le lekelle si un player ennemie touche le parpaing..il se fait mal
+	//hlp
+	TraceResult m_trHit;
+	
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usParpaing;
+};
+
 
 
 class CCrowbar : public CBasePlayerWeapon
@@ -505,20 +671,20 @@ class CCrowbar : public CBasePlayerWeapon
 public:
 	void Spawn( void );
 	void Precache( void );
-	int iItemSlot( void ) { return 1; }
+	int iItemSlot( void ) { return 0; }
 	void EXPORT SwingAgain( void );
 	void EXPORT Smack( void );
 	int GetItemInfo(ItemInfo *p);
-
+	
 	void PrimaryAttack( void );
 	int Swing( int fFirst );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	int m_iSwing;
 	TraceResult m_trHit;
-
+	
 	virtual BOOL UseDecrement( void )
-	{ 
+	{
 #if defined( CLIENT_WEAPONS )
 		return TRUE;
 #else
@@ -529,6 +695,7 @@ private:
 	unsigned short m_usCrowbar;
 };
 
+/*
 class CPython : public CBasePlayerWeapon
 {
 public:
@@ -664,7 +831,9 @@ private:
 	unsigned short m_usDoubleFire;
 	unsigned short m_usSingleFire;
 };
+*/
 
+/*
 class CLaserSpot : public CBaseEntity
 {
 	void Spawn( void );
@@ -1014,6 +1183,6 @@ public:
 private:
 	unsigned short m_usSnarkFire;
 };
-
+*/
 
 #endif // WEAPONS_H

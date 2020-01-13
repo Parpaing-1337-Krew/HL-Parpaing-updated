@@ -17,6 +17,7 @@
 
 
 #include "pm_materials.h"
+#include "auto-help.h"
 
 
 #define PLAYER_FATAL_FALL_SPEED		1024// approx 60 feet
@@ -62,6 +63,12 @@
 
 #define TEAM_NAME_LENGTH	16
 
+//douanier : ca sera + simple
+#define MACON1 1
+#define MACON2 2
+#define INSPECTEUR 3
+#define SPECTATEUR 0
+
 typedef enum
 {
 	PLAYER_IDLE,
@@ -71,6 +78,19 @@ typedef enum
 	PLAYER_DIE,
 	PLAYER_ATTACK1,
 } PLAYER_ANIM;
+
+//definition pour le VGUI hlp
+#define MENU_DEFAULT 1
+#define MENU_TEAM 2
+#define MENU_CLASS 3
+#define MENU_MAPBRIEFING 4
+#define MENU_INTRO 5
+#define MENU_CLASSHELP 6
+#define MENU_CLASSHELP2 7
+#define MENU_REPEATHELP 8
+
+#define Spawn_Maison 0
+#define Spawn_Place 1
 
 #define MAX_ID_RANGE 2048
 #define SBAR_STRING_SIZE 128
@@ -88,6 +108,89 @@ enum sbar_data
 class CBasePlayer : public CBaseMonster
 {
 public:
+	//rajouts hl-parpaing (merci d'annoter vos ajouts)
+	void ScorePanel ();
+	
+	void ChangeSpawnPoint ( void );
+	int SpawnPoint;
+	float CheckTime;//depuis combien de temps n'a on pas regardé ce qu'il y a en face
+	float MsgTime; //depuis qu'on bien de temps n'a on pas dit qu'on est sur une caisse d'alcool.
+	bool IsDefusing;
+	bool DefuseDraw;
+	
+	void StopDefuse(void);//idem
+	void StartDefuse(void);//007:Comme son nom l'indique
+	void Bum(void);
+	// envoi de bo message en vgui pour le client
+	void SendMessage2Player (char* msg);
+	
+	bool InPrison; // (fab) en prison ?? ohoho c mal !
+	bool IsChaos; // chaos ou pas chaos ??
+	
+	// test debug pour mp3 !
+	int Mp3Id; // (madfab) id mp3 pour que ca marche ! :/ nan enfet ca sert plus à rien mais ma touche del est trop dure.
+	
+	int m_NbKO; // (fab) nombre de chaos ke c pris un macon en un round , plus il a pris de chaos , moins il aura de vie en resortant d'un KO . vala  
+	float m_flWakeUp; // (fab) msg toute les secondes pour dire quand le macon se reveille !
+	
+	bool WasInBar;
+	bool AlreadyBlame; // au moins une fois blamé ??
+	void BlameMacon (CBasePlayer *pAttacker,CBasePlayer *pVictim); // blame
+	bool IsInBarArea; //007 : oui j'y tiens ! Moi aussi je suis un rebel.
+	void EntreDansLeBar(void); //007 : comme son nom l'indique lancée quand le macon entre dans le bar
+	void SortDuBar(void);//007 vous avez compris le principe :)
+	void BarThink(void);//comme son nom l'indique...<fab> le bar pense ?? :]
+	void PutPrison(void); // (madfab) met o frais pour kelke tps  
+	void Blame( void ); // blame in the Face :]
+	void Cite( void );
+	
+	float BarTime; //remplace le time de CTriggerBar
+	// pour l'inspecteur
+	void InspecteurXP (int Valeur); //permet de faire gagner ou perdre de l'xp à un inspecteur : ex InspecteurXP(1) pour lui faire gagner un point
+	
+	////////|[ carnet ]|/////////////
+	bool UseCarnet; // l'inspecteur attaque t'il au carnet ??
+	CBasePlayer* pMauvais; // macon attaqué.
+	float TakeCarnet; // kan le mauvais macon recoit l'attaque.
+	float CarnetTime; // juska kan doit il avoir le macon en joue pour que l'attaque marche o max.
+	
+	////////|[ sifflet ]|/////////////
+	bool IsCheck; //(fab) stopper par le sifflet d'un inspecteur ?
+	float StopByIns; // (fab) quand le macon peut til repartir.
+	
+	int AutoHelpList[AH_NB_ID][2];
+	int m_iAlcool; // % d'alcool
+	
+	float m_fTimeBar; // tps passé dans le bar pour boire pis envoi pour les stats ensuite
+	int m_iHealhTaken; // vie prise dan sle bar
+	
+	float NextAlcool; // prochaine baisse d'alcool.
+	int m_iCredibi; //madfab :  crédibilité du player si il est inspecteur. 0(min) à 5(max)
+	int m_iMaxSpeed; // <madfab> j'arrive pas à recup le maxspeed normalement, donc je passe apr une variable , na ! <douanier>Oh le rebel !
+	int m_iTeam; //numéro de la team : 1 macon1 , 2 macon2, 3 inspecteur, 0 spectateur
+	int m_iTrueTeam; //numero de la team à rejoindre quand le joueur est [exclu] ou [inconscient]
+	float m_fRespawnTime; // temps auquel le joueur reintegre sa team
+	float m_fRespawnablame; // temps ou on est spectateur apres un blame.
+	//bool observerflag;  //si le joueur est observer (BLP: plus besoin, si la team est 0 alors il est observer)
+	
+	float NextPainComment; // Prochain moment ou il pourra y avoir un commentaire de souffrance (eviter les répétitions en cas de coups répéter par exemple) 
+	float NextCrossComment;
+	
+	int m_iHasParpaing; //si le joueur possède un parpaing
+	/*
+	0 aucun
+	1 Parpaing
+	2 BombParpaing
+	*/
+	bool PoseParpaing; // si il pose le parpaing
+	float ParpaingTime; // tps lié à la pose du parpaing
+	
+	//	virtual void Think( void );
+	//	virtual void HalluThink(); //BLP douanier > client side maintenant
+#ifndef CLIENT_DLL
+	virtual void UpdateScore( void ); //BLP
+#endif
+	//fin hlp
 	
 	// Spectator camera
 	void	Observer_FindNextPlayer( bool bReverse );
@@ -195,13 +298,25 @@ public:
 
 	int m_nCustomSprayFrames;// Custom clan logo frames for this player
 	float	m_flNextDecalTime;// next time this player can spray a decal
-
+	float	m_flNextGhostTime;
+	
 	char m_szTeamName[TEAM_NAME_LENGTH];
 
 	virtual void Spawn( void );
 	void Pain( void );
 
 //	virtual void Think( void );
+	//virtual void UpdateTeamName2( bool msg ); //BLP
+	//virtual void hasp();
+	void BecomeKO (int type);  // fade gris plus tete claqué contre le sol !
+	int KOType; // 1 player 2 world -> a spawner autre part
+	virtual void DropParpaing( void );
+	virtual void AutoHelpSet(int id, int time);
+	virtual void AutoHelpUnset(int id);
+	virtual void AutoHelpCheck();
+	virtual void AutoHelpInit();
+	virtual	void AutoHelp(int id );
+	
 	virtual void Jump( void );
 	virtual void Duck( void );
 	virtual void PreThink( void );
@@ -280,6 +395,8 @@ public:
 
 	void WaterMove( void );
 	void EXPORT PlayerDeathThink( void );
+	void EXPORT PlayerKOThink( void );
+	void PrePlayerKOThink( void );
 	void PlayerUse( void );
 
 	void CheckSuitUpdate();
@@ -306,7 +423,8 @@ public:
 	int GetCustomDecalFrames( void );
 
 	void TabulateAmmo( void );
-
+	
+	float m_flPlusKO; // hlp
 	float m_flStartCharge;
 	float m_flAmmoStartCharge;
 	float m_flPlayAftershock;
@@ -324,6 +442,9 @@ public:
 	float m_flNextChatTime;
 	
 };
+
+//hlp
+void ShowVGUI( CBasePlayer *pPlayer, int iMenu );// affichage du menu VGUI
 
 #define AUTOAIM_2DEGREES  0.0348994967025
 #define AUTOAIM_5DEGREES  0.08715574274766

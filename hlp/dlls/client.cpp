@@ -40,6 +40,12 @@
 #include "netadr.h"
 #include "pm_shared.h"
 
+#include "teamplay_gamerules.h"
+#include "hlp.h"
+//#include "sql.h" // Ruzgfpegk 20200112: déprécions cte merde de fonctionnalité
+#include "time.h"
+// #include "version.h"
+
 #if !defined ( _WIN32 )
 #include <ctype.h>
 #endif
@@ -51,11 +57,15 @@ extern DLL_GLOBAL ULONG		g_ulFrameCount;
 
 extern void CopyToBodyQue(entvars_t* pev);
 extern int giPrecacheGrunt;
+extern int giPrecacheMegret;
 extern int gmsgSayText;
+extern int gmsgTime;
+extern int gmsgCarnet;
 
 extern cvar_t allow_spectators;
 
 extern int g_teamplay;
+static int team_scores[MAX_TEAMS];
 
 void LinkUserMessages( void );
 
@@ -167,6 +177,8 @@ GLOBALS ASSUMED SET:  g_ulModelIndexPlayer
 */
 void ClientKill( edict_t *pEntity )
 {
+	ALERT(at_console,"You cant commit suicide...\n");
+	/*
 	entvars_t *pev = &pEntity->v;
 
 	CBasePlayer *pl = (CBasePlayer*) CBasePlayer::Instance( pev );
@@ -179,6 +191,7 @@ void ClientKill( edict_t *pEntity )
 	// have the player kill themself
 	pev->health = 0;
 	pl->Killed( pev, GIB_NEVER );
+	*/
 
 //	pev->modelindex = g_ulModelIndexPlayer;
 //	pev->frags -= 2;		// extra penalty
@@ -546,6 +559,146 @@ void ClientCommand( edict_t *pEntity )
 			CLIENT_PRINTF( pEntity, print_console, UTIL_VarArgs( "\"fov\" is \"%d\"\n", (int)GetClassPtr((CBasePlayer *)pev)->m_iFOV ) );
 		}
 	}
+	else if ( FStrEq(pcmd, "vgui" ) )
+	{
+		if (CMD_ARGC() > 1)
+			ShowVGUI( GetClassPtr((CBasePlayer *)pev), atoi( CMD_ARGV(1) ) );
+		
+	}
+	else if (FStrEq(pcmd, "changeteam" ))
+	{
+		
+		if (GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime > gpGlobals->time)
+		{
+			ClientPrint(GetClassPtr((CBasePlayer *)pev)->pev , HUD_PRINTTALK, UTIL_VarArgs("Vous pourrez changer d'equipe dans %i sec.\n",(int)(GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime - gpGlobals->time)));
+			return;
+		}
+		if (GetClassPtr((CBasePlayer *)pev)->IsChaos)
+		{
+			ClientPrint(GetClassPtr((CBasePlayer *)pev)->pev , HUD_PRINTTALK, UTIL_VarArgs("Vous etes KO !"));
+			return;
+		}
+		
+		ShowVGUI( GetClassPtr((CBasePlayer *)pev), MENU_TEAM );
+	}
+	//choix de team
+	else if (FStrEq(pcmd, "Macon[51]" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->DropParpaing();
+		GetClassPtr((CBasePlayer *)pev)->RemoveAllItems(TRUE);
+		GetClassPtr((CBasePlayer *)pev)->m_iTeam = 1 ;
+		strcpy(GetClassPtr((CBasePlayer *)pev)->m_szTeamName , "Macon[51]");
+		GetClassPtr((CBasePlayer *)pev)->Spawn();
+		
+		//	GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		g_pGameRules->UpdateTeamName(GetClassPtr((CBasePlayer *)pev),1);
+		GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime = gpGlobals->time + 15.0;
+		GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		GetClassPtr((CBasePlayer *)pev)->ScorePanel();
+		
+	}
+	
+	else if (FStrEq(pcmd, "Macon[Ricard]" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->DropParpaing();
+		GetClassPtr((CBasePlayer *)pev)->RemoveAllItems(TRUE);
+		GetClassPtr((CBasePlayer *)pev)->m_iTeam = 2 ;
+		strcpy(GetClassPtr((CBasePlayer *)pev)->m_szTeamName , "Macon[Ricard]");
+		GetClassPtr((CBasePlayer *)pev)->Spawn();
+		
+		//	GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		g_pGameRules->UpdateTeamName(GetClassPtr((CBasePlayer *)pev),1);
+		GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime = gpGlobals->time + 15.0;
+		GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		GetClassPtr((CBasePlayer *)pev)->ScorePanel();
+	}
+	else if (FStrEq(pcmd, "Inspecteur" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->DropParpaing();
+		GetClassPtr((CBasePlayer *)pev)->RemoveAllItems(TRUE);
+		GetClassPtr((CBasePlayer *)pev)->m_iTeam = 3 ;
+		strcpy(GetClassPtr((CBasePlayer *)pev)->m_szTeamName , "Inspecteur");
+		GetClassPtr((CBasePlayer *)pev)->Spawn();
+		
+		//	GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		g_pGameRules->UpdateTeamName(GetClassPtr((CBasePlayer *)pev),1);
+		GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime = gpGlobals->time + 15.0;
+		GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		GetClassPtr((CBasePlayer *)pev)->ScorePanel();
+		
+	}
+	else if (FStrEq(pcmd, "Spectateur" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->DropParpaing();
+		GetClassPtr((CBasePlayer *)pev)->RemoveAllItems(TRUE);
+		ClientPrint(GetClassPtr((CBasePlayer *)pev)->pev,HUD_PRINTNOTIFY,"Vous etes desormais spectateur\n"); // BLP : pas d'accents dans HL et \n pour changer de ligne;>
+		GetClassPtr((CBasePlayer *)pev)->m_iTeam = 0 ; // BLP ; Spectateur c'est 0 maintenant
+		strcpy(GetClassPtr((CBasePlayer *)pev)->m_szTeamName , "Spectateur");
+		GetClassPtr((CBasePlayer *)pev)->Spawn();
+		
+		//	GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		g_pGameRules->UpdateTeamName(GetClassPtr((CBasePlayer *)pev),1);
+		GetClassPtr((CBasePlayer *)pev)->m_fRespawnTime = gpGlobals->time + 15.0;
+		GetClassPtr((CBasePlayer *)pev)->UpdateScore();
+		GetClassPtr((CBasePlayer *)pev)->ScorePanel();
+	}
+	else if (FStrEq(pcmd, "aie" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->TakeDamage (pev,pev,20,DMG_CRUSH);
+	}
+	
+	else if (FStrEq(pcmd, "blame" ))
+	{
+		GetClassPtr((CBasePlayer *)pev)->Blame (); //just a little blame in your face !
+	}
+	//fin choix de team
+	else if (FStrEq(pcmd, "pastis" ))
+	{
+		//char pass[] = {"connard"};
+		
+		int iszItem = ALLOC_STRING( CMD_ARGV(1) );	// Make a copy of the classname
+		
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX(GetClassPtr((CBasePlayer *)pev)->edict()), NULL, "name", (char*)iszItem );
+		
+		//GetClassPtr((CBasePlayer *)pev)->pev->netname = iszItem;
+		
+		//ALERT(at_console,"%s\n",SQLGetPlayerInfo(GetClassPtr((CBasePlayer *)pev)));
+		//ALERT(at_console,"%s:%i\n",CVAR_GET_STRING("ip"),(int)CVAR_GET_FLOAT("port"));
+		//sprintf(Addr,"%s:%f",CVAR_GET_FLOAT("ip"),CVAR_GET_FLOAT("port"));
+
+		//GetClassPtr((CBasePlayer *)pev)->m_iAlcool +=5;
+	}
+	// else if (FStrEq(pcmd, "build" ))
+	// {
+	// 	ALERT(at_console,"Half-Life Parpaing. Build : %i\n",BUILD_HLP);
+	// }
+	else if (FStrEq(pcmd, "inf" ))
+	{
+		//Connect();
+		
+		if (CMD_ARGC() > 1)
+		{
+			
+			int iszItem = ALLOC_STRING( CMD_ARGV(1) );	// Make a copy of the classname
+			
+			GetClassPtr((CBasePlayer *)pev)->SendMessage2Player ((char*)iszItem);
+		}
+	}
+	else if ( FStrEq(pcmd, "hlp" ) )
+	{
+		WIN32_FIND_DATA wData;
+		//char nom[MAX_PATH];
+		
+		HANDLE listing;
+		listing = FindFirstFile("hl-parpaing/maps/*.bsp",&wData);
+		
+		while((FindNextFile(listing, &wData)))
+		{
+			ALERT (at_console,"%s\n",wData.cFileName );
+		}
+		FindClose(listing);
+		
+	}
 	else if ( FStrEq(pcmd, "use" ) )
 	{
 		GetClassPtr((CBasePlayer *)pev)->SelectItem((char *)CMD_ARGV(1));
@@ -594,6 +747,20 @@ void ClientCommand( edict_t *pEntity )
 		if ( pPlayer->IsObserver() )
 			pPlayer->Observer_FindNextPlayer( atoi( CMD_ARGV(1) )?true:false );
 	}
+	else if ( FStrEq(pcmd, "changerespawnpoint" ) )
+	{
+		GetClassPtr((CBasePlayer *)pev)->ChangeSpawnPoint();
+	}
+	else if ( FStrEq(pcmd, "hasp" ) )
+	{
+		//Connect();
+		//GetClassPtr((CBasePlayer *)pev)->BecomeKO(1);
+	}
+	/*else if ( FStrEq(pcmd, "!cite" ) )
+	{
+		GetClassPtr((CBasePlayer *)pev)->Cite();
+	}
+	*/
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning
@@ -806,6 +973,84 @@ void ClientPrecache( void )
 	
 	// PRECACHE_SOUND("player/pl_jumpland2.wav");		// UNDONE: play 2x step sound
 	
+	PRECACHE_SOUND("alcool/action_boire.wav"); // hlp : :son kan le macon boit du pastis
+	PRECACHE_SOUND("weapons/pose_parpaing.wav"); // hlp : :son kan le macon pose un parpaing
+	PRECACHE_SOUND("feedback/alarm.wav"); // hlp : :son kan le macon a fini de poser un parpaing
+	
+	PRECACHE_SOUND("voix/commentaires/inspecteurs_gagnent/inspecteurs_gagnent.wav");
+	PRECACHE_SOUND("voix/commentaires/macons_gagnent/macons[51]_gagnent.wav");
+	PRECACHE_SOUND("voix/commentaires/macons_gagnent/macons[ricard]_gagnent.wav");
+	
+	PRECACHE_SOUND("voix/macons/blame/b_bosserenpaix.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_bossertranquille.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_enfoire.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_etmerde.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_pasjuste.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_petecouilles.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_raslebol.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_rooh.wav");
+	PRECACHE_SOUND("voix/macons/blame/b_salaud.wav");
+	
+	PRECACHE_SOUND("voix/macons/boisricard/br_bienbesoin.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_bonricard.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_faisdubien.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_mmmh.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_plusdeglacons.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_quelbonheur.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_quellechaleur.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_rafraichitidees.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_rot.wav");
+	PRECACHE_SOUND("voix/macons/boisricard/br_jeanmimi.wav");
+	
+	PRECACHE_SOUND("voix/macons/perdvie/pv_aye.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_bordel.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_faitmal.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_manquaitplusqueca.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_mercurochrome.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_merde.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_ouaille.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_ouille.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_putaing2.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_putaing.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_saloperie.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_souffre.wav");
+	PRECACHE_SOUND("voix/macons/perdvie/pv_tropvieux.wav");
+	
+	PRECACHE_SOUND("voix/macons/poseparpaing/ppp_allezhop.wav");
+	PRECACHE_SOUND("voix/macons/poseparpaing/ppp_bon.wav");
+	PRECACHE_SOUND("voix/macons/poseparpaing/ppp_fait.wav");
+	PRECACHE_SOUND("voix/macons/poseparpaing/ppp_undeplus.wav");
+	
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_anousdeux.wav");
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_beauparpaing.wav");
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_lourd.wav");
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_parti.wav");
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_tropchaud.wav");
+	PRECACHE_SOUND("voix/macons/prendparpaing/pp_vientla.wav");
+	
+	PRECACHE_SOUND("voix/inspecteurs/blame/1deplus.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blame/catapprendra.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blame/chenapant.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blame/--crapy_sound--.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blame/retournebosse.wav");
+	
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/8grammes7.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/alcoolique.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/article51.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/etatdebriete.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/lefrippon.wav");
+	PRECACHE_SOUND("voix/inspecteurs/blamemaconbourre/lesouvriersboiventtrop.wav");
+	
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/approchez.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/controle.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/demandearreter.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/instant.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/montrepapiers2.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/montrepapiers.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/sentalcool.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/svparretezvous.wav");
+	PRECACHE_SOUND("voix/inspecteurs/croisemacon/vospapiers.wav");
+	
 	PRECACHE_SOUND("player/pl_fallpain2.wav");		
 	PRECACHE_SOUND("player/pl_fallpain3.wav");		
 	
@@ -891,6 +1136,10 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_pain7.wav");
 
 	PRECACHE_MODEL("models/player.mdl");
+	/*
+	PRECACHE_MODEL("sprites/spec_y.spr");
+	PRECACHE_MODEL("sprites/spec_b.spr");
+	*/
 
 	// hud sounds
 
@@ -912,6 +1161,10 @@ void ClientPrecache( void )
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
+	
+	UTIL_PrecacheOther("monster_megret");
+	UTIL_PrecacheOther("item_bombparpaing");
+	UTIL_PrecacheOther("monster_scientist");
 }
 
 /*
@@ -923,10 +1176,13 @@ Returns the descriptive name of this .dll.  E.g., Half-Life, or Team Fortress 2
 */
 const char *GetGameDescription()
 {
+	return "HL-Parpaing"; //BLP : Pourquoi pas...
+	
 	if ( g_pGameRules ) // this function may be called before the world has spawned, and the game rules initialized
 		return g_pGameRules->GetGameDescription();
 	else
-		return "Half-Life";
+		//return "Half-Life";
+		return "HL-Parpaing";
 }
 
 /*
@@ -1754,11 +2010,13 @@ void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s
 					cd->vuser4.y	= pl->m_rgAmmo[gun->m_iPrimaryAmmoType];
 					cd->vuser4.z	= pl->m_rgAmmo[gun->m_iSecondaryAmmoType];
 					
+					/*
 					if ( pl->m_pActiveItem->m_iId == WEAPON_RPG )
 					{
 						cd->vuser2.y = ( ( CRpg * )pl->m_pActiveItem)->m_fSpotActive;
 						cd->vuser2.z = ( ( CRpg * )pl->m_pActiveItem)->m_cActiveRockets;
 					}
+					*/
 				}
 			}
 		}

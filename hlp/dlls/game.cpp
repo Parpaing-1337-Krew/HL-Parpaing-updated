@@ -19,6 +19,32 @@
 
 cvar_t	displaysoundlist = {"displaysoundlist","0"};
 
+// hlp
+cvar_t	valeurparpaing={"mp_valeurparpaing","400",  FCVAR_SERVER };
+cvar_t  respawntime = {"mp_respawntime",    "20",   FCVAR_SERVER };
+cvar_t  roundtime   = {"mp_roundtime",      "5",    FCVAR_SERVER };
+cvar_t	murcolor    = {"mp_murcolor",       "1",    FCVAR_SERVER };
+cvar_t	derrick     = {"mp_derrick",        "0",    FCVAR_SERVER };
+cvar_t	megret      = {"mp_megret",         "1",    FCVAR_SERVER };
+cvar_t	megret_time = {"mp_megret_time",    "300",  FCVAR_SERVER };
+cvar_t	defuse      = {"mp_defuse",         "1",    FCVAR_SERVER };
+cvar_t	defuse_time = {"mp_defuse_time",    "200",  FCVAR_SERVER };
+cvar_t	ctf         = {"mp_ctf",            "1",    FCVAR_SERVER };
+cvar_t	ctf_time    = {"mp_ctf_time",       "50",   FCVAR_SERVER };
+cvar_t	ghost       = {"mp_ghost",          "0",    FCVAR_SERVER };
+
+cvar_t	mp3         = {"mp_mp3",            "0",    FCVAR_SERVER };
+cvar_t	svhide      = {"sv_dbhidden",       "0",    FCVAR_SERVER };
+cvar_t	dbhide      = {"sv_dbsend",         "1",    FCVAR_SERVER };
+
+// hlp - points
+// forme var + cvar = Pt4 + objet
+cvar_t	pt4parpaing = {"mp_pt4parpaing",    "4",    FCVAR_SERVER };
+cvar_t	pt4blame    = {"mp_pt4blame",       "10",   FCVAR_SERVER };
+
+// hlp - tps divers
+cvar_t	KOtime      = {"mp_kotime",          "15",  FCVAR_SERVER };
+
 // multiplayer server rules
 cvar_t	fragsleft	= {"mp_fragsleft","0", FCVAR_SERVER | FCVAR_UNLOGGED };	  // Don't spam console/log files/users with this changing
 cvar_t	timeleft	= {"mp_timeleft","0" , FCVAR_SERVER | FCVAR_UNLOGGED };	  // "      "
@@ -26,7 +52,8 @@ cvar_t	timeleft	= {"mp_timeleft","0" , FCVAR_SERVER | FCVAR_UNLOGGED };	  // "  
 // multiplayer server rules
 cvar_t	teamplay	= {"mp_teamplay","0", FCVAR_SERVER };
 cvar_t	fraglimit	= {"mp_fraglimit","0", FCVAR_SERVER };
-cvar_t	timelimit	= {"mp_timelimit","0", FCVAR_SERVER };
+//cvar_t	timelimit	= {"mp_timelimit","0", FCVAR_SERVER };
+cvar_t	timelimit	= {"mp_timelimit","30", FCVAR_SERVER };
 cvar_t	friendlyfire= {"mp_friendlyfire","0", FCVAR_SERVER };
 cvar_t	falldamage	= {"mp_falldamage","0", FCVAR_SERVER };
 cvar_t	weaponstay	= {"mp_weaponstay","0", FCVAR_SERVER };
@@ -37,7 +64,8 @@ cvar_t	decalfrequency = {"decalfrequency","30", FCVAR_SERVER };
 cvar_t	teamlist = {"mp_teamlist","hgrunt;scientist", FCVAR_SERVER };
 cvar_t	teamoverride = {"mp_teamoverride","1" };
 cvar_t	defaultteam = {"mp_defaultteam","0" };
-cvar_t	allowmonsters={"mp_allowmonsters","0", FCVAR_SERVER };
+//cvar_t	allowmonsters={"mp_allowmonsters","0", FCVAR_SERVER };
+cvar_t	allowmonsters={"mp_allowmonsters","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -455,6 +483,25 @@ cvar_t	sk_player_leg3	= { "sk_player_leg3","1" };
 void GameDLLInit( void )
 {
 	// Register cvars here:
+	
+	//hlp
+	CVAR_REGISTER (&valeurparpaing);
+	CVAR_REGISTER (&respawntime);
+	CVAR_REGISTER (&roundtime);
+	CVAR_REGISTER (&murcolor);
+	CVAR_REGISTER (&derrick);
+	CVAR_REGISTER (&megret);
+	CVAR_REGISTER (&megret_time);
+	CVAR_REGISTER (&defuse);
+	CVAR_REGISTER (&defuse_time);
+	CVAR_REGISTER (&ctf);
+	CVAR_REGISTER (&ctf_time);
+	CVAR_REGISTER (&ghost);
+	
+	CVAR_REGISTER (&mp3);
+	CVAR_REGISTER (&svhide);
+	CVAR_REGISTER (&dbhide);
+	CVAR_REGISTER (&KOtime);
 
 	g_psv_gravity = CVAR_GET_POINTER( "sv_gravity" );
 	g_psv_aim = CVAR_GET_POINTER( "sv_aim" );

@@ -592,13 +592,18 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 {
 	unsigned int	cCount = 0;
 	BOOL			fDone = FALSE;
+	
+	SetTouch(NULL);
+	pev->takedamage = DAMAGE_NO;
 
+	/*
 	if ( HasMemory( bits_MEMORY_KILLED ) )
 	{
 		if ( ShouldGibMonster( iGib ) )
 			CallGibMonster();
 		return;
 	}
+	*/
 
 	Remember( bits_MEMORY_KILLED );
 
@@ -617,7 +622,7 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 
 	if	( ShouldGibMonster( iGib ) )
 	{
-		CallGibMonster();
+		//CallGibMonster();
 		return;
 	}
 	else if ( pev->flags & FL_MONSTER )
@@ -897,7 +902,13 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 	// do the damage
 	pev->health -= flTake;
-
+	// hlp (fab)
+	/*if (pev->health<=2 && IsPlayer())
+	{
+	g_pGameRules->PlayerKilled( ((CBasePlayer *)pevInflictor), pevAttacker, g_pevLastInflictor );
+	GetClassPtr((CBasePlayer *)pevInflictor)->BecomeKO();
+	pev->health=1;
+	}*/
 	
 	// HACKHACK Don't kill monsters in a script.  Let them break their scripts first
 	if ( m_MonsterState == MONSTERSTATE_SCRIPT )
@@ -1587,6 +1598,8 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 
 void CBaseEntity :: TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
 {
+	return;
+	
 	if (BloodColor() == DONT_BLEED)
 		return;
 	
